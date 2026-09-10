@@ -1,0 +1,816 @@
+// // pages/currencies/ViewCurrency.jsx
+// import React, { useState, useEffect } from 'react';
+// import { useNavigate, useParams } from 'react-router-dom';
+// import FormPage from '../../components/common/FormPage';
+// import { currencyService } from '../../services/currency.service';
+// import { showError } from '../../utils/toast';
+// import { formatDate } from '../../utils/helpers';
+// import { fetchUsers } from '../../utils/getUserName';
+
+// // ─── Helper: Parse API date format ──────────────────────────────
+// const parseApiDate = (dateString) => {
+//   if (!dateString) return null;
+  
+//   if (dateString instanceof Date) return dateString;
+//   if (typeof dateString === 'string' && dateString.includes('T')) {
+//     const d = new Date(dateString);
+//     if (!isNaN(d)) return d;
+//   }
+  
+//   const match = dateString.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4}),\s*(\d{1,2}):(\d{2}):(\d{2})\s*(am|pm)$/i);
+//   if (match) {
+//     let [_, day, month, year, hours, minutes, seconds, ampm] = match;
+//     hours = parseInt(hours);
+//     if (ampm.toLowerCase() === 'pm' && hours < 12) hours += 12;
+//     if (ampm.toLowerCase() === 'am' && hours === 12) hours = 0;
+//     return new Date(parseInt(year), parseInt(month) - 1, parseInt(day), hours, parseInt(minutes), parseInt(seconds));
+//   }
+  
+//   const d = new Date(dateString);
+//   return !isNaN(d) ? d : null;
+// };
+
+// // ─── Helper: Format date with time ──────────────────────────────
+// const formatDateTime = (date) => {
+//   if (!date) return '—';
+  
+//   const parsed = typeof date === 'string' ? parseApiDate(date) : date;
+//   if (!parsed || isNaN(parsed)) return '—';
+  
+//   return parsed.toLocaleString('en-IN', {
+//     day: '2-digit',
+//     month: 'short',
+//     year: 'numeric'
+//   });
+// };
+
+// const ViewCurrency = () => {
+//   const navigate = useNavigate();
+//   const { id } = useParams();
+//   const [initialData, setInitialData] = useState(null);
+//   const [viewData, setViewData] = useState(null);
+//   const [loading, setLoading] = useState(true);
+//   const [userNameCache, setUserNameCache] = useState({});
+
+//   // Get user name with caching
+//   const getUserNameCached = (userId) => {
+//     if (!userId) return "-";
+//     return userNameCache[userId] || `User ${userId}`;
+//   };
+
+//   // Fetch currency data
+//   useEffect(() => {
+//     const fetchCurrency = async () => {
+//       setLoading(true);
+//       try {
+//         // Fetch users for names
+//         const users = await fetchUsers();
+//         const userMap = {};
+//         Object.keys(users).forEach(id => {
+//           userMap[id] = users[id].name;
+//         });
+//         setUserNameCache(userMap);
+
+//         const response = await currencyService.getById(id);
+//         console.log('Currency response:', response);
+        
+//         // Handle different response structures
+//         const result = response?.data || response;
+//         const data = result?.data || result;
+//         console.log('Extracted data:', data);
+        
+//         if (data && data.id) {
+//           // ─── FIX: Determine status from is_status or status ──────
+//           let isActive = false;
+          
+//           // Check is_status first
+//           if (data.is_status !== undefined && data.is_status !== null) {
+//             isActive = data.is_status === true || data.is_status === 1 || data.is_status === "1" || data.is_status === "true";
+//           } 
+//           // Fallback to status field
+//           else if (data.status !== undefined && data.status !== null) {
+//             isActive = data.status === true || data.status === 1 || data.status === "1" || data.status === "true" || data.status === "active";
+//           }
+          
+//           console.log('Is active:', isActive);
+
+//           // ─── Determine is_default ────────────────────────────────
+//           let isDefault = false;
+//           if (data.is_default !== undefined && data.is_default !== null) {
+//             isDefault = data.is_default === true || data.is_default === 1 || data.is_default === "1" || data.is_default === "true";
+//           }
+
+//           // ─── Parse dates ─────────────────────────────────────────
+//           const createdAt = data.created_at || data.createdAt || null;
+//           const updatedAt = data.updated_at || data.updatedAt || null;
+
+//           const formData = {
+//             currency_name: data.currency_name || data.name || "",
+//             currency_code: data.currency_code || data.code || "",
+//             currency_symbol: data.currency_symbol || data.symbol || "",
+//             display_order: data.display_order || 0,
+//             is_default: isDefault,
+//             status: isActive ? "active" : "inactive",
+//             created_by: data.created_by || "-",
+//             updated_by: data.updated_by || "-",
+//             created_at: createdAt,
+//             updated_at: updatedAt,
+//           };
+//           console.log('Form data prepared:', formData);
+//           setInitialData(formData);
+//           setViewData(data);
+//         } else {
+//           showError("Currency not found");
+//           navigate('/currencies');
+//         }
+//       } catch (error) {
+//         console.error('Fetch error:', error);
+//         showError(error.message || "Failed to load currency data");
+//         navigate('/currencies');
+//       } finally {
+//         setLoading(false);
+//       }
+//     };
+
+//     if (id) {
+//       fetchCurrency();
+//     }
+//   }, [id, navigate]);
+
+//   const handleEdit = () => {
+//     navigate(`/currencies/edit/${id}`);
+//   };
+
+//   // ─── Form fields configuration - view only ─────────────────────
+//   const fields = [
+//     {
+//       name: "currency_name",
+//       label: "Currency Name",
+//       type: "text",
+//       readonly: true,
+//       viewRender: (value) => (
+//         <span className="font-medium text-gray-800">{value}</span>
+//       ),
+//     },
+//     {
+//       name: "currency_code",
+//       label: "Currency Code",
+//       type: "text",
+//       readonly: true,
+//       viewRender: (value) => (
+//         <span className="font-mono font-semibold uppercase text-blue-600">
+//           {value}
+//         </span>
+//       ),
+//     },
+//     {
+//       name: "currency_symbol",
+//       label: "Currency Symbol",
+//       type: "text",
+//       readonly: true,
+//       viewRender: (value) => (
+//         <span className="text-2xl font-bold text-gray-800">{value}</span>
+//       ),
+//     },
+//     {
+//       name: "display_order",
+//       label: "Display Order",
+//       type: "text",
+//       readonly: true,
+//       viewRender: (value) => (
+//         <span className="text-gray-600">{value || 0}</span>
+//       ),
+//     },
+//     {
+//       name: "is_default",
+//       label: "Is Default",
+//       type: "checkbox",
+//       readonly: true,
+//       viewRender: (value) => (
+//         <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${
+//           value ? "bg-green-50 text-green-700" : "bg-gray-100 text-gray-500"
+//         }`}>
+//           <span className={`w-1.5 h-1.5 rounded-full ${value ? "bg-green-500" : "bg-gray-400"}`} />
+//           {value ? "Yes" : "No"}
+//         </span>
+//       ),
+//     },
+//     {
+//       name: "status",
+//       label: "Status",
+//       type: "text",
+//       readonly: true,
+//       viewRender: (value) => (
+//         <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${
+//           value === "active" ? "bg-green-50 text-green-700" : "bg-gray-100 text-gray-500"
+//         }`}>
+//           <span className={`w-1.5 h-1.5 rounded-full ${value === "active" ? "bg-green-500" : "bg-gray-400"}`} />
+//           {value === "active" ? "Active" : "Inactive"}
+//         </span>
+//       ),
+//     },
+//     // ─── Audit: Created By ──────────────────────────────────────
+//     {
+//       name: "created_by",
+//       label: "Created By",
+//       type: "text",
+//       readonly: true,
+//       viewRender: (value) => {
+//         const name = getUserNameCached(value);
+//         return <span className="text-gray-600">{name}</span>;
+//       },
+//     },
+//     // ─── Audit: Created At ──────────────────────────────────────
+//     {
+//       name: "created_at",
+//       label: "Created At",
+//       type: "text",
+//       readonly: true,
+//       viewRender: (value) => {
+//         if (!value) return <span className="text-gray-400">—</span>;
+//         return (
+//           <div className="flex flex-col">
+//             <span className="text-gray-700">{formatDateTime(value)}</span>
+//           </div>
+//         );
+//       },
+//     },
+//     // ─── Audit: Updated By ──────────────────────────────────────
+//     {
+//       name: "updated_by",
+//       label: "Updated By",
+//       type: "text",
+//       readonly: true,
+//       viewRender: (value) => {
+//         const name = getUserNameCached(value);
+//         return <span className="text-gray-600">{name}</span>;
+//       },
+//     },
+//     // ─── Audit: Updated At ──────────────────────────────────────
+//     {
+//       name: "updated_at",
+//       label: "Updated At",
+//       type: "text",
+//       readonly: true,
+//       viewRender: (value) => {
+//         if (!value) return <span className="text-gray-400">—</span>;
+//         return (
+//           <div className="flex flex-col">
+//             <span className="text-gray-700">{formatDateTime(value)}</span>
+//           </div>
+//         );
+//       },
+//     },
+//   ];
+
+//   if (loading) {
+//     return (
+//       <div className="flex items-center justify-center min-h-screen">
+//         <div className="flex flex-col items-center gap-3">
+//           <div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
+//           <p className="text-sm text-gray-400">Loading currency details...</p>
+//         </div>
+//       </div>
+//     );
+//   }
+
+//   if (!initialData) {
+//     return null;
+//   }
+
+//   return (
+//     <FormPage
+//       title="Currency Details"
+//       mode="view"
+//       fields={fields}
+//       initialData={initialData}
+//       onSubmit={() => {}}
+//       onEdit={handleEdit}
+//       navigateTo="/currencies"
+//       breadcrumb={`Viewing: ${viewData?.currency_name || 'Currency'}`}
+//       enableEditMode={true}
+//       showEdit={true}
+//       editLabel="Edit Currency"
+//       cancelLabel="Back to Currencies"
+//     />
+//   );
+// };
+
+// export default ViewCurrency;
+
+// pages/currencies/ViewCurrency.jsx
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
+import {
+  MdArrowBack,
+  MdEdit,
+  MdCancel,
+  MdInfo,
+  MdHistory,
+  MdCheckCircle,
+  MdErrorOutline,
+  MdPerson,
+  MdAttachMoney,
+  MdStar,
+} from 'react-icons/md';
+import { currencyService } from '../../services/currency.service';
+import { showError } from '../../utils/toast';
+import { formatDate } from '../../utils/helpers';
+import { fetchUsers } from '../../utils/getUserName';
+
+// ─── Helper: Parse API date format ──────────────────────────────
+const parseApiDate = (dateString) => {
+  if (!dateString) return null;
+  if (dateString instanceof Date) return dateString;
+  if (typeof dateString === 'string' && dateString.includes('T')) {
+    const d = new Date(dateString);
+    if (!isNaN(d)) return d;
+  }
+  const match = dateString.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4}),\s*(\d{1,2}):(\d{2}):(\d{2})\s*(am|pm)$/i);
+  if (match) {
+    let [_, day, month, year, hours, minutes, seconds, ampm] = match;
+    hours = parseInt(hours);
+    if (ampm.toLowerCase() === 'pm' && hours < 12) hours += 12;
+    if (ampm.toLowerCase() === 'am' && hours === 12) hours = 0;
+    return new Date(parseInt(year), parseInt(month) - 1, parseInt(day), hours, parseInt(minutes), parseInt(seconds));
+  }
+  const d = new Date(dateString);
+  return !isNaN(d) ? d : null;
+};
+
+// ─── Helper: Format date with time ──────────────────────────────
+const formatDateTime = (date) => {
+  if (!date) return '—';
+  const parsed = typeof date === 'string' ? parseApiDate(date) : date;
+  if (!parsed || isNaN(parsed)) return '—';
+  return parsed.toLocaleString('en-IN', {
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric',
+  });
+};
+
+// ─── Status styles ─────────────────────────────────────────────
+const STATUS_STYLES = {
+  active: {
+    pill: 'bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200',
+    dot: 'bg-emerald-500',
+    icon: MdCheckCircle,
+  },
+  inactive: {
+    pill: 'bg-slate-100 text-slate-500 ring-1 ring-slate-200',
+    dot: 'bg-slate-400',
+    icon: MdErrorOutline,
+  },
+};
+
+const StatusPill = ({ status }) => {
+  const style = STATUS_STYLES[status] || STATUS_STYLES.inactive;
+  const Icon = style.icon;
+  return (
+    <span
+      className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold ${style.pill}`}
+    >
+      <Icon size={13} />
+      {status ? status.charAt(0).toUpperCase() + status.slice(1) : 'Unknown'}
+    </span>
+  );
+};
+
+// ─── Shared small pieces ─────────────────────────────────────
+const FieldLabel = ({ children }) => (
+  <label className="block text-[13px] font-medium text-slate-600 mb-1.5">
+    {children}
+  </label>
+);
+
+const ReadOnlyValue = ({ children }) => (
+  <div className="text-sm text-slate-700 py-2 px-3 bg-slate-50 rounded-lg border border-slate-200">
+    {children || '—'}
+  </div>
+);
+
+// ─── Tabs ──────────────────────────────────────────────────────
+const TABS = [
+  { id: 'overview', label: 'Overview', icon: MdInfo },
+  { id: 'activity', label: 'Activity', icon: MdHistory },
+];
+
+// ─── Main Component ──────────────────────────────────────────
+const ViewCurrency = () => {
+  const navigate = useNavigate();
+  const { id } = useParams();
+
+  const [loading, setLoading] = useState(true);
+  const [currencyData, setCurrencyData] = useState(null);
+  const [userNameCache, setUserNameCache] = useState({});
+  const [activeTab, setActiveTab] = useState('overview');
+
+  // ─── Helper: get user name ────────────────────────────────────
+  const getUserNameCached = (userId) => {
+    if (!userId) return '—';
+    return userNameCache[userId] || `User ${userId}`;
+  };
+
+  // ─── Fetch users for audit names ────────────────────────────
+  useEffect(() => {
+    const loadUsers = async () => {
+      try {
+        const users = await fetchUsers();
+        const userMap = {};
+        Object.keys(users).forEach((id) => {
+          userMap[id] = users[id].name;
+        });
+        setUserNameCache(userMap);
+      } catch (error) {
+        console.error('Failed to load users:', error);
+      }
+    };
+    loadUsers();
+  }, []);
+
+  // ─── Fetch currency data ─────────────────────────────────────
+  useEffect(() => {
+    const fetchCurrency = async () => {
+      setLoading(true);
+      try {
+        const response = await currencyService.getById(id);
+        const result = response?.data || response;
+        const data = result?.data || result;
+
+        if (data && data.id) {
+          // Determine status
+          let isActive = false;
+          if (data.is_status !== undefined && data.is_status !== null) {
+            isActive = data.is_status === true || data.is_status === 1 || data.is_status === '1' || data.is_status === 'true';
+          } else if (data.status !== undefined && data.status !== null) {
+            isActive = data.status === true || data.status === 1 || data.status === '1' || data.status === 'true' || data.status === 'active';
+          }
+
+          // Determine is_default
+          let isDefault = false;
+          if (data.is_default !== undefined && data.is_default !== null) {
+            isDefault = data.is_default === true || data.is_default === 1 || data.is_default === '1' || data.is_default === 'true';
+          }
+
+          setCurrencyData({
+            id: data.id,
+            currency_name: data.currency_name || data.name || '',
+            currency_code: data.currency_code || data.code || '',
+            currency_symbol: data.currency_symbol || data.symbol || '',
+            display_order: data.display_order || 0,
+            is_default: isDefault,
+            status: isActive ? 'active' : 'inactive',
+            created_by: data.created_by || null,
+            updated_by: data.updated_by || null,
+            created_at: data.created_at || data.createdAt || null,
+            updated_at: data.updated_at || data.updatedAt || null,
+          });
+        } else {
+          showError('Currency not found');
+          navigate('/currencies');
+        }
+      } catch (error) {
+        console.error('Fetch error:', error);
+        showError(error.message || 'Failed to load currency data');
+        navigate('/currencies');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (id) {
+      fetchCurrency();
+    }
+  }, [id, navigate]);
+
+  const handleEdit = () => {
+    navigate(`/currencies/edit/${id}`);
+  };
+
+  const handleBack = () => navigate('/currencies');
+
+  // ─── Loading state ─────────────────────────────────────────
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-[#F4F5FA]">
+        <div className="flex flex-col items-center gap-3">
+          <div className="w-9 h-9 border-[3px] border-blue-500 border-t-transparent rounded-full animate-spin" />
+          <p className="text-sm text-slate-400">Loading currency details...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!currencyData) {
+    return null;
+  }
+
+  // ─── Compute hero data ────────────────────────────────────
+  const currencyName = currencyData.currency_name || 'Currency';
+  const currencyCode = currencyData.currency_code || '---';
+  const currencySymbol = currencyData.currency_symbol || '¤';
+  const status = currencyData.status || 'inactive';
+  const isDefault = currencyData.is_default || false;
+  const displayOrder = currencyData.display_order ?? 0;
+  const createdDate = currencyData.created_at ? formatDateTime(currencyData.created_at) : '—';
+  const updatedDate = currencyData.updated_at ? formatDateTime(currencyData.updated_at) : '—';
+
+  const initials = currencyName
+    .split(' ')
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((w) => w[0]?.toUpperCase())
+    .join('');
+
+  // ─── Render tab content ──────────────────────────────────
+  const renderTabContent = () => {
+    switch (activeTab) {
+      case 'overview':
+        return (
+          <div className="space-y-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+              <div>
+                <FieldLabel>Currency Name</FieldLabel>
+                <ReadOnlyValue>
+                  <span className="font-medium text-lg">{currencyName}</span>
+                </ReadOnlyValue>
+              </div>
+              <div>
+                <FieldLabel>Currency Code</FieldLabel>
+                <ReadOnlyValue>
+                  <span className="font-mono font-semibold uppercase text-blue-600">{currencyCode}</span>
+                </ReadOnlyValue>
+              </div>
+              <div>
+                <FieldLabel>Currency Symbol</FieldLabel>
+                <ReadOnlyValue>
+                  <span className="text-2xl font-bold text-slate-800">{currencySymbol}</span>
+                </ReadOnlyValue>
+              </div>
+              <div>
+                <FieldLabel>Display Order</FieldLabel>
+                <ReadOnlyValue>{displayOrder}</ReadOnlyValue>
+              </div>
+              <div>
+                <FieldLabel>Default Currency</FieldLabel>
+                <ReadOnlyValue>
+                  <span
+                    className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${
+                      isDefault ? 'bg-green-50 text-green-700' : 'bg-slate-100 text-slate-500'
+                    }`}
+                  >
+                    <span
+                      className={`w-1.5 h-1.5 rounded-full ${isDefault ? 'bg-green-500' : 'bg-slate-400'}`}
+                    />
+                    {isDefault ? 'Yes' : 'No'}
+                  </span>
+                </ReadOnlyValue>
+              </div>
+              <div>
+                <FieldLabel>Status</FieldLabel>
+                <ReadOnlyValue>
+                  <StatusPill status={status} />
+                </ReadOnlyValue>
+              </div>
+              <div>
+                <FieldLabel>ID</FieldLabel>
+                <ReadOnlyValue>#{currencyData.id}</ReadOnlyValue>
+              </div>
+            </div>
+          </div>
+        );
+
+      case 'activity':
+        return (
+          <div className="space-y-6 max-w-2xl">
+            <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+              <div className="px-6 py-4 border-b border-slate-100 bg-slate-50/50">
+                <h2 className="text-sm font-semibold text-slate-700 uppercase tracking-wider flex items-center gap-2">
+                  <MdHistory size={16} />
+                  Audit Information
+                </h2>
+              </div>
+              <div className="p-6 space-y-5">
+                <div>
+                  <FieldLabel>Created By</FieldLabel>
+                  <ReadOnlyValue>
+                    {currencyData.created_by ? getUserNameCached(currencyData.created_by) : '—'}
+                  </ReadOnlyValue>
+                </div>
+                <div>
+                  <FieldLabel>Created At</FieldLabel>
+                  <ReadOnlyValue>{createdDate}</ReadOnlyValue>
+                </div>
+                <div>
+                  <FieldLabel>Last Updated By</FieldLabel>
+                  <ReadOnlyValue>
+                    {currencyData.updated_by ? getUserNameCached(currencyData.updated_by) : '—'}
+                  </ReadOnlyValue>
+                </div>
+                <div>
+                  <FieldLabel>Last Updated At</FieldLabel>
+                  <ReadOnlyValue>{updatedDate}</ReadOnlyValue>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+
+      default:
+        return null;
+    }
+  };
+
+  // ─── Main render ──────────────────────────────────────────
+  return (
+    <div className="min-h-screen pb-16 bg-[#F4F5FA]">
+      {/* ─── Sticky action bar (light) ───────────────────────── */}
+      <div className="bg-white/85 backdrop-blur-md border-b border-slate-200 sticky top-0 z-10">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between gap-4">
+          <div className="flex items-center gap-3 min-w-0">
+            <button
+              onClick={handleBack}
+              className="p-2 rounded-lg hover:bg-slate-100 transition-colors flex-shrink-0"
+              aria-label="Back"
+            >
+              <MdArrowBack size={19} className="text-slate-600" />
+            </button>
+            <div className="min-w-0">
+              <p className="text-[11px] text-slate-400 leading-tight">Currencies</p>
+              <p className="text-sm font-semibold text-slate-800 truncate leading-tight max-w-[45vw]">
+                {currencyName}
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2 flex-shrink-0">
+            <button
+              type="button"
+              onClick={handleEdit}
+              className="inline-flex items-center gap-1.5 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-lg shadow-sm shadow-blue-600/20 transition-colors"
+            >
+              <MdEdit size={16} />
+              Edit Currency
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 pt-6">
+        {/* ─── Hero (dark gradient) ──────────────────────────── */}
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.35, ease: 'easeOut' }}
+          className="relative rounded-2xl overflow-hidden shadow-lg shadow-slate-900/5"
+        >
+          <div className="relative h-44 sm:h-52 bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-700">
+            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/30 to-transparent" />
+            <div className="absolute inset-0 opacity-10">
+              <div className="absolute top-0 right-0 w-64 h-64 bg-white rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
+              <div className="absolute bottom-0 left-0 w-48 h-48 bg-white rounded-full blur-3xl translate-y-1/2 -translate-x-1/2" />
+            </div>
+          </div>
+
+          <div className="absolute inset-x-0 bottom-0 px-5 sm:px-7 pb-5 pt-3">
+            <div className="flex flex-col sm:flex-row sm:items-end gap-4">
+              <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-white/10 backdrop-blur-sm p-1.5 shadow-xl flex-shrink-0 border border-white/10">
+                <div className="w-full h-full rounded-xl bg-gradient-to-br from-blue-400 to-indigo-500 flex items-center justify-center text-white font-bold text-lg">
+                  {initials || <MdAttachMoney size={24} />}
+                </div>
+              </div>
+
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <h1 className="text-xl sm:text-2xl font-bold text-white truncate max-w-full">
+                    {currencyName}
+                  </h1>
+                  <StatusPill status={status} />
+                  {isDefault && (
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-green-400/20 text-green-300 ring-1 ring-green-400/30">
+                      <MdStar size={12} />
+                      Default
+                    </span>
+                  )}
+                </div>
+                <div className="mt-2 flex items-center gap-2 flex-wrap">
+                  <span className="text-xs text-white/70">Code: {currencyCode}</span>
+                  <span className="text-xs text-white/70">•</span>
+                  <span className="text-xs text-white/70">Symbol: {currencySymbol}</span>
+                  <span className="text-xs text-white/70">•</span>
+                  <span className="text-xs text-white/70">Order: {displayOrder}</span>
+                  <span className="text-xs text-white/70">•</span>
+                  <span className="text-xs text-white/70">ID: #{currencyData.id}</span>
+                  {currencyData.created_at && (
+                    <>
+                      <span className="text-xs text-white/70">•</span>
+                      <span className="text-xs text-white/70">Created: {createdDate}</span>
+                    </>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        </motion.div>
+
+        {/* ─── Quick stat strip (light) ────────────────────────── */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-4">
+          <div className="flex items-center gap-2.5 rounded-xl bg-white/80 backdrop-blur-sm px-3.5 py-2.5 border border-slate-200 shadow-sm">
+            <MdInfo size={16} className="text-slate-400 flex-shrink-0" />
+            <div className="min-w-0">
+              <p className="text-[10px] text-slate-500 leading-tight">Status</p>
+              <p className="text-sm font-semibold text-slate-700 truncate capitalize">
+                {status}
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2.5 rounded-xl bg-white/80 backdrop-blur-sm px-3.5 py-2.5 border border-slate-200 shadow-sm">
+            <MdStar size={16} className="text-slate-400 flex-shrink-0" />
+            <div className="min-w-0">
+              <p className="text-[10px] text-slate-500 leading-tight">Default</p>
+              <p className="text-sm font-semibold text-slate-700 truncate">
+                {isDefault ? 'Yes' : 'No'}
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2.5 rounded-xl bg-white/80 backdrop-blur-sm px-3.5 py-2.5 border border-slate-200 shadow-sm">
+            <MdAttachMoney size={16} className="text-slate-400 flex-shrink-0" />
+            <div className="min-w-0">
+              <p className="text-[10px] text-slate-500 leading-tight">Symbol</p>
+              <p className="text-sm font-semibold text-slate-700 truncate">
+                {currencySymbol || '—'}
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2.5 rounded-xl bg-white/80 backdrop-blur-sm px-3.5 py-2.5 border border-slate-200 shadow-sm">
+            <MdPerson size={16} className="text-slate-400 flex-shrink-0" />
+            <div className="min-w-0">
+              <p className="text-[10px] text-slate-500 leading-tight">Created By</p>
+              <p className="text-sm font-semibold text-slate-700 truncate">
+                {currencyData.created_by ? getUserNameCached(currencyData.created_by) : '—'}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* ─── Tabs (light theme) ───────────────────────────────── */}
+        <div className="mt-6 bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+          <div className="flex overflow-x-auto border-b border-slate-200 px-2">
+            {TABS.map((tab) => {
+              const Icon = tab.icon;
+              const active = activeTab === tab.id;
+              return (
+                <button
+                  key={tab.id}
+                  type="button"
+                  onClick={() => setActiveTab(tab.id)}
+                  className={`relative flex items-center gap-1.5 px-4 py-3.5 text-sm font-medium whitespace-nowrap transition-colors ${
+                    active ? 'text-blue-600' : 'text-slate-500 hover:text-slate-700'
+                  }`}
+                >
+                  <Icon size={16} />
+                  {tab.label}
+                  {active && (
+                    <motion.span
+                      layoutId="view-currency-tab-underline"
+                      className="absolute left-2 right-2 -bottom-px h-0.5 bg-blue-600 rounded-full"
+                      transition={{ type: 'spring', stiffness: 500, damping: 35 }}
+                    />
+                  )}
+                </button>
+              );
+            })}
+          </div>
+
+          <div className="p-5 sm:p-7">
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={activeTab}
+                initial={{ opacity: 0, y: 6 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -6 }}
+                transition={{ duration: 0.18 }}
+              >
+                {renderTabContent()}
+              </motion.div>
+            </AnimatePresence>
+          </div>
+        </div>
+
+        {/* Mobile-only back button */}
+        <button
+          type="button"
+          onClick={handleBack}
+          className="sm:hidden mt-4 w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-600 text-sm font-medium rounded-lg transition-colors"
+        >
+          <MdCancel size={16} />
+          Back to Currencies
+        </button>
+      </div>
+    </div>
+  );
+};
+
+export default ViewCurrency;

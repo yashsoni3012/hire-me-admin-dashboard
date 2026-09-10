@@ -1,0 +1,11 @@
+admin register api: "/"
+admin login api: "/"
+admin forget password api: "/"
+admin reset password api: "/"
+
+role: "/role"
+permission: "/permission"
+module: "module"
+departments: "/departments"
+industry: "/industry"
+jobs: "/jobs"
