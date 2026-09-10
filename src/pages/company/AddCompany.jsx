@@ -1,3 +1,5 @@
+
+
 // import React, { useState, useEffect } from "react";
 // import { useNavigate } from "react-router-dom";
 // import { MdArrowBack, MdSave, MdCancel } from "react-icons/md";
@@ -613,7 +615,7 @@
 //                   </div>
 
 //                   {/* Internal Status (commented out) */}
-//                   {/*
+//                   {/* 
 //                   <div>
 //                     <label className="text-xs font-medium text-gray-500 uppercase tracking-wider">
 //                       Internal Status
@@ -734,80 +736,64 @@
 
 // export default AddCompany;
 
-import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import { motion, AnimatePresence } from "framer-motion";
+// pages/companies/AddCompany.jsx
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
 import {
   MdArrowBack,
   MdSave,
   MdCancel,
-  MdApartment,
-  MdCategory,
-  MdGroups,
-  MdImage,
+  MdInfo,
   MdBusiness,
+  MdCategory,
+  MdImage,
+  MdFlag,
+  MdCloudUpload,
+  MdPerson,
   MdTrendingUp,
   MdCheckCircle,
   MdErrorOutline,
-  MdCloudUpload,
-  MdPerson,
+  MdLink,
   MdOpenInNew,
-  MdFlag,
-} from "react-icons/md";
-import companyService from "../../services/company.service";
-import subIndustryService from "../../services/subIndustry.service";
-import { useAuth } from "../../context/AuthContext";
-import { showSuccess, showError } from "../../utils/toast";
-import { Editor } from "@tinymce/tinymce-react";
+} from 'react-icons/md';
+import companyService from '../../services/company.service';
+import subIndustryService from '../../services/subIndustry.service';
+import { useAuth } from '../../context/AuthContext';
+import { showSuccess, showError } from '../../utils/toast';
+import { Editor } from '@tinymce/tinymce-react';
 
 const API_BASE =
-  import.meta.env.VITE_API_URL || "https://apidata.hiremejobs.in";
+  import.meta.env.VITE_API_URL || 'https://apidata.hiremejobs.in';
 
 // Helper: build full image URL (only used for previews)
 const getImageUrl = (path) => {
   if (!path) return null;
-  if (path.startsWith("http://") || path.startsWith("https://")) return path;
+  if (path.startsWith('http://') || path.startsWith('https://')) return path;
   return `${API_BASE}${path}`;
 };
 
-// ─── Shared small components ──────────────────────────────────
-const FieldLabel = ({ children, required }) => (
-  <label className="block text-[13px] font-medium text-slate-600 mb-1.5">
-    {children}
-    {required && <span className="text-red-500 ml-0.5">*</span>}
-  </label>
-);
-
-const Toggle = ({ checked, onChange, name }) => (
-  <label className="relative inline-flex items-center cursor-pointer">
-    <input
-      type="checkbox"
-      name={name}
-      checked={checked || false}
-      onChange={onChange}
-      className="sr-only peer"
-    />
-    <div className="w-11 h-6 bg-slate-300 peer-checked:bg-blue-600 rounded-full transition-colors duration-300 after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:rounded-full after:h-5 after:w-5 after:shadow after:transition-transform after:duration-300 peer-checked:after:translate-x-5" />
-  </label>
-);
-
-// ─── Status pill ──────────────────────────────────────────────
+// ─── Status styles ─────────────────────────────────────────────
 const STATUS_STYLES = {
   active: {
-    pill: "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200",
+    pill: 'bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200',
+    dot: 'bg-emerald-500',
     icon: MdCheckCircle,
   },
   inactive: {
-    pill: "bg-slate-100 text-slate-500 ring-1 ring-slate-200",
+    pill: 'bg-slate-100 text-slate-500 ring-1 ring-slate-200',
+    dot: 'bg-slate-400',
     icon: MdErrorOutline,
   },
   pending: {
-    pill: "bg-amber-50 text-amber-700 ring-1 ring-amber-200",
-    icon: MdCheckCircle,
+    pill: 'bg-amber-50 text-amber-700 ring-1 ring-amber-200',
+    dot: 'bg-amber-500',
+    icon: MdErrorOutline,
   },
   blocked: {
-    pill: "bg-red-50 text-red-700 ring-1 ring-red-200",
-    icon: MdCheckCircle,
+    pill: 'bg-red-50 text-red-700 ring-1 ring-red-200',
+    dot: 'bg-red-500',
+    icon: MdErrorOutline,
   },
 };
 
@@ -819,17 +805,35 @@ const StatusPill = ({ status }) => {
       className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold ${style.pill}`}
     >
       <Icon size={13} />
-      {status ? status.charAt(0).toUpperCase() + status.slice(1) : "Unknown"}
+      {status ? status.charAt(0).toUpperCase() + status.slice(1) : 'Unknown'}
     </span>
   );
 };
 
+const TrendingBadge = ({ trending }) => {
+  if (!trending) return null;
+  return (
+    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-orange-400/20 text-orange-300 ring-1 ring-orange-400/30">
+      <MdTrendingUp size={12} />
+      Trending
+    </span>
+  );
+};
+
+// ─── Shared small pieces ─────────────────────────────────────
+const FieldLabel = ({ children, required }) => (
+  <label className="block text-[13px] font-medium text-slate-600 mb-1.5">
+    {children}
+    {required && <span className="text-red-500 ml-0.5">*</span>}
+  </label>
+);
+
 // ─── Tabs ──────────────────────────────────────────────────────
 const TABS = [
-  { id: "overview", label: "Overview", icon: MdApartment },
-  { id: "relations", label: "Relations", icon: MdCategory },
-  { id: "media", label: "Media", icon: MdImage },
-  { id: "status", label: "Status & Flags", icon: MdFlag },
+  { id: 'overview', label: 'Overview', icon: MdBusiness },
+  { id: 'relations', label: 'Relations', icon: MdCategory },
+  { id: 'media', label: 'Media', icon: MdImage },
+  { id: 'status', label: 'Status & Flags', icon: MdFlag },
 ];
 
 // ─── Main Component ──────────────────────────────────────────
@@ -838,7 +842,7 @@ const AddCompany = () => {
   const { user, token } = useAuth();
   const userId = user?.id || 1;
   const [loading, setLoading] = useState(false);
-  const [activeTab, setActiveTab] = useState("overview");
+  const [activeTab, setActiveTab] = useState('overview');
 
   // ─── Dropdown data states ────────────────────────────────────
   const [companyUsers, setCompanyUsers] = useState([]);
@@ -873,8 +877,8 @@ const AddCompany = () => {
         setIndustries(extractList(industriesRes));
         setSubIndustries(extractList(subIndustriesRes));
       } catch (err) {
-        console.error("Error loading dropdown data:", err);
-        showError("Failed to load dropdown data");
+        console.error('Error loading dropdown data:', err);
+        showError('Failed to load dropdown data');
       } finally {
         setLoadingData(false);
       }
@@ -884,50 +888,42 @@ const AddCompany = () => {
 
   // ─── Form state ──────────────────────────────────────────────
   const [formValues, setFormValues] = useState({
-    company_name: "",
-    slug: "",
-    website: "",
-    founded_year: "",
-    about_company: "",
-    gst_number: "",
-    company_user_id: "",
-    industry_id: "",
-    sub_industry_id: "",
-    company_size_id: "",
+    company_name: '',
+    slug: '',
+    website: '',
+    founded_year: '',
+    about_company: '',
+    gst_number: '',
+    company_user_id: '',
+    industry_id: '',
+    sub_industry_id: '',
+    company_size_id: '',
     logo: null,
     banner_image: null,
-    company_status: "active",
-    is_status: "active",
+    company_status: 'active',
+    is_status: 'active',
     is_trending: false,
   });
 
   const [fileLogo, setFileLogo] = useState(null);
   const [fileBanner, setFileBanner] = useState(null);
-  const [aboutCompanyMode, setAboutCompanyMode] = useState("rich");
 
   // ─── Handlers ─────────────────────────────────────────────────
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
     setFormValues((prev) => ({
       ...prev,
-      [name]: type === "checkbox" ? checked : value,
-    }));
-  };
-
-  const handleAboutCompanyChange = (value) => {
-    setFormValues((prev) => ({
-      ...prev,
-      about_company: value || "",
+      [name]: type === 'checkbox' ? checked : value,
     }));
   };
 
   const handleFileChange = (e, field) => {
     const file = e.target.files[0];
     if (file) {
-      if (field === "logo") {
+      if (field === 'logo') {
         setFileLogo(file);
         setFormValues((prev) => ({ ...prev, logo: URL.createObjectURL(file) }));
-      } else if (field === "banner_image") {
+      } else if (field === 'banner_image') {
         setFileBanner(file);
         setFormValues((prev) => ({
           ...prev,
@@ -935,6 +931,20 @@ const AddCompany = () => {
         }));
       }
     }
+  };
+
+  const handleRemoveLogo = () => {
+    setFileLogo(null);
+    setFormValues((prev) => ({ ...prev, logo: null }));
+    const el = document.getElementById('logo-upload');
+    if (el) el.value = '';
+  };
+
+  const handleRemoveBanner = () => {
+    setFileBanner(null);
+    setFormValues((prev) => ({ ...prev, banner_image: null }));
+    const el = document.getElementById('banner-upload');
+    if (el) el.value = '';
   };
 
   // ─── Dropdown options ────────────────────────────────────────
@@ -966,15 +976,15 @@ const AddCompany = () => {
   // ─── Validation ──────────────────────────────────────────────
   const validate = () => {
     if (!formValues.company_name?.trim()) {
-      showError("Company name is required");
+      showError('Company name is required');
       return false;
     }
     if (formValues.company_name.trim().length < 2) {
-      showError("Company name must be at least 2 characters");
+      showError('Company name must be at least 2 characters');
       return false;
     }
     if (formValues.company_name.trim().length > 100) {
-      showError("Company name must be at most 100 characters");
+      showError('Company name must be at most 100 characters');
       return false;
     }
     if (
@@ -983,7 +993,7 @@ const AddCompany = () => {
         formValues.website,
       )
     ) {
-      showError("Please enter a valid URL");
+      showError('Please enter a valid URL');
       return false;
     }
     if (formValues.founded_year) {
@@ -1000,53 +1010,53 @@ const AddCompany = () => {
 
   // ─── Submit ──────────────────────────────────────────────────
   const handleSubmit = async (e) => {
-    e.preventDefault();
+    if (e) e.preventDefault();
     if (!validate()) return;
 
     setLoading(true);
     try {
       const payload = new FormData();
-      payload.append("company_name", formValues.company_name.trim());
+      payload.append('company_name', formValues.company_name.trim());
       payload.append(
-        "slug",
+        'slug',
         formValues.slug.trim() ||
-          formValues.company_name.trim().toLowerCase().replace(/\s+/g, "-"),
+          formValues.company_name.trim().toLowerCase().replace(/\s+/g, '-'),
       );
-      payload.append("website", formValues.website?.trim() || "");
-      payload.append("founded_year", formValues.founded_year || "");
-      payload.append("about_company", formValues.about_company?.trim() || "");
-      payload.append("gst_number", formValues.gst_number?.trim() || "");
-      payload.append("company_status", formValues.company_status);
+      payload.append('website', formValues.website?.trim() || '');
+      payload.append('founded_year', formValues.founded_year || '');
+      payload.append('about_company', formValues.about_company?.trim() || '');
+      payload.append('gst_number', formValues.gst_number?.trim() || '');
+      payload.append('company_status', formValues.company_status);
       payload.append(
-        "is_status",
-        formValues.is_status === "active" ? "true" : "false",
+        'is_status',
+        formValues.is_status === 'active' ? 'true' : 'false',
       );
-      payload.append("is_trending", formValues.is_trending ? "true" : "false");
-      payload.append("created_by", userId);
-      payload.append("updated_by", userId);
+      payload.append('is_trending', formValues.is_trending ? 'true' : 'false');
+      payload.append('created_by', userId);
+      payload.append('updated_by', userId);
 
       if (formValues.company_user_id) {
-        payload.append("company_user_id", formValues.company_user_id);
+        payload.append('company_user_id', formValues.company_user_id);
       }
       if (formValues.company_size_id) {
-        payload.append("company_size_id", formValues.company_size_id);
+        payload.append('company_size_id', formValues.company_size_id);
       }
       if (formValues.industry_id) {
-        payload.append("industry_id", formValues.industry_id);
+        payload.append('industry_id', formValues.industry_id);
       }
       if (formValues.sub_industry_id) {
-        payload.append("sub_industry_id", formValues.sub_industry_id);
+        payload.append('sub_industry_id', formValues.sub_industry_id);
       }
 
       if (fileLogo instanceof File) {
-        payload.append("logo", fileLogo);
+        payload.append('logo', fileLogo);
       }
       if (fileBanner instanceof File) {
-        payload.append("banner_image", fileBanner);
+        payload.append('banner_image', fileBanner);
       }
 
       const response = await fetch(`${API_BASE}/companies`, {
-        method: "POST",
+        method: 'POST',
         headers: { Authorization: `Bearer ${token}` },
         body: payload,
       });
@@ -1056,31 +1066,33 @@ const AddCompany = () => {
         throw new Error(errorText || `HTTP error ${response.status}`);
       }
 
-      showSuccess("Company created successfully");
-      navigate("/companies");
+      showSuccess('Company created successfully');
+      navigate('/companies');
     } catch (error) {
-      console.error("Submit error:", error);
-      showError(error.message || "Failed to create company");
+      console.error('Submit error:', error);
+      showError(error.message || 'Failed to create company');
     } finally {
       setLoading(false);
     }
   };
 
+  const handleBack = () => navigate('/companies');
+
   // ─── Render helpers ──────────────────────────────────────────
   const renderImagePreview = (
     path,
-    alt = "Image",
-    className = "w-20 h-20 object-cover rounded-lg",
+    alt = 'Image',
+    className = 'w-20 h-20 object-cover rounded-lg',
   ) => {
-    if (!path) return <span className="text-slate-400 text-sm">No image</span>;
+    if (!path) return null;
     return (
       <div className="relative group inline-block">
         <img
-          src={path.startsWith("blob:") ? path : getImageUrl(path)}
+          src={path.startsWith('blob:') ? path : getImageUrl(path)}
           alt={alt}
           className={`${className} border border-slate-200 shadow-sm`}
           onError={(e) => {
-            e.target.style.display = "none";
+            e.target.style.display = 'none';
           }}
         />
       </div>
@@ -1092,41 +1104,46 @@ const AddCompany = () => {
     return (
       <div className="flex items-center justify-center min-h-screen bg-[#F4F5FA]">
         <div className="flex flex-col items-center gap-3">
-          <div className="w-9 h-9 border-[3px] border-blue-500 border-t-transparent rounded-full animate-spin" />
+          <div className="w-9 h-9 border-[3px] border-indigo-500 border-t-transparent rounded-full animate-spin" />
           <p className="text-sm text-slate-400">Loading data...</p>
         </div>
       </div>
     );
   }
 
-  const heroName = formValues.company_name?.trim() || "New Company";
-  const initials = heroName
-    .split(" ")
+  // ─── Compute hero data ────────────────────────────────────
+  const companyName = formValues.company_name?.trim() || 'New Company';
+  const companyStatus = formValues.company_status || 'active';
+  const isTrending = formValues.is_trending || false;
+
+  const initials = companyName
+    .split(' ')
     .filter(Boolean)
     .slice(0, 2)
     .map((w) => w[0]?.toUpperCase())
-    .join("");
+    .join('');
 
-  // ─── Render tab content ──────────────────────────────────────
+  // ─── Render tab content ────────────────────────────────────
   const renderTabContent = () => {
+    const commonClass =
+      'w-full px-3.5 py-2.5 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-100 focus:border-blue-400 transition-colors bg-white';
+
     switch (activeTab) {
-      case "overview":
+      case 'overview':
         return (
           <div className="space-y-5">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
               <div className="sm:col-span-2">
-                <FieldLabel required>Company name</FieldLabel>
+                <FieldLabel required>Company Name</FieldLabel>
                 <input
                   type="text"
                   name="company_name"
                   value={formValues.company_name}
                   onChange={handleInputChange}
-                  className="w-full px-3.5 py-2.5 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-100 focus:border-blue-400 transition-colors"
+                  className={commonClass}
                   placeholder="e.g. Acme Corp"
-                  required
                 />
               </div>
-
               <div>
                 <FieldLabel>Slug (URL identifier)</FieldLabel>
                 <input
@@ -1134,11 +1151,10 @@ const AddCompany = () => {
                   name="slug"
                   value={formValues.slug}
                   onChange={handleInputChange}
-                  className="w-full px-3.5 py-2.5 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-100 focus:border-blue-400 transition-colors"
+                  className={commonClass}
                   placeholder="auto-generated if empty"
                 />
               </div>
-
               <div>
                 <FieldLabel>Website</FieldLabel>
                 <input
@@ -1146,174 +1162,107 @@ const AddCompany = () => {
                   name="website"
                   value={formValues.website}
                   onChange={handleInputChange}
-                  className="w-full px-3.5 py-2.5 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-100 focus:border-blue-400 transition-colors"
+                  className={commonClass}
                   placeholder="https://example.com"
                 />
               </div>
-
               <div>
-                <FieldLabel>Founded year</FieldLabel>
+                <FieldLabel>Founded Year</FieldLabel>
                 <input
                   type="number"
                   name="founded_year"
                   value={formValues.founded_year}
                   onChange={handleInputChange}
-                  className="w-full px-3.5 py-2.5 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-100 focus:border-blue-400 transition-colors"
+                  className={commonClass}
                   placeholder="2020"
                   min="1900"
                   max={new Date().getFullYear()}
                 />
               </div>
-
               <div>
-                <FieldLabel>GST number</FieldLabel>
+                <FieldLabel>GST Number</FieldLabel>
                 <input
                   type="text"
                   name="gst_number"
                   value={formValues.gst_number}
                   onChange={handleInputChange}
-                  className="w-full px-3.5 py-2.5 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-100 focus:border-blue-400 transition-colors"
+                  className={commonClass}
                   placeholder="e.g. 24ABCDE1234F1Z5"
                 />
               </div>
             </div>
 
             <div>
-              <FieldLabel>About company</FieldLabel>
-
-              <div className="mb-3 flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-100 p-1 w-fit shadow-sm">
-                {[
-                  { id: "rich", label: "Text" },
-                  { id: "html", label: "HTML" },
-                ].map((tab) => (
-                  <button
-                    key={tab.id}
-                    type="button"
-                    onClick={() => setAboutCompanyMode(tab.id)}
-                    className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
-                      aboutCompanyMode === tab.id
-                        ? "bg-white text-blue-700 shadow-sm ring-1 ring-blue-100"
-                        : "text-slate-600 hover:text-slate-800"
-                    }`}
-                  >
-                    {tab.label}
-                  </button>
-                ))}
-              </div>
-
-              {aboutCompanyMode === "rich" ? (
-                <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
-                  <Editor
-                    tinymceScriptSrc="/tinymce/tinymce.min.js"
-                    licenseKey="gpl"
-                    value={formValues.about_company || ""}
-                    onEditorChange={handleAboutCompanyChange}
-                    init={{
-                      height: 360,
-                      menubar: true,
-                      statusbar: true,
-                      plugins: [
-                        "advlist",
-                        "autolink",
-                        "lists",
-                        "link",
-                        "image",
-                        "charmap",
-                        "preview",
-                        "anchor",
-                        "searchreplace",
-                        "visualblocks",
-                        "code",
-                        "fullscreen",
-                        "insertdatetime",
-                        "media",
-                        "table",
-                        "help",
-                        "wordcount",
-                      ],
-                      toolbar:
-                        "file undo redo | bold italic underline strikethrough | " +
-                        "fontfamily fontsize | alignleft aligncenter alignright alignjustify | " +
-                        "bullist numlist outdent indent | link image table | " +
-                        "forecolor backcolor | removeformat code | help",
-                      menu: {
-                        file: {
-                          title: "File",
-                          items: "newdocument restoredraft | preview | print ",
-                        },
-                        edit: {
-                          title: "Edit",
-                          items:
-                            "undo redo | cut copy paste pastetext | selectall ",
-                        },
-                        view: {
-                          title: "View",
-                          items: "visualaid visualblocks | code | fullscreen ",
-                        },
-                        insert: {
-                          title: "Insert",
-                          items: "image link media table | hr | pagebreak ",
-                        },
-                        format: {
-                          title: "Format",
-                          items:
-                            "bold italic underline strikethrough | formats | removeformat ",
-                        },
-                        tools: {
-                          title: "Tools",
-                          items: "searchreplace | spellcheckdialog ",
-                        },
-                        table: {
-                          title: "Table",
-                          items:
-                            "inserttable | cell row column | advtablesort | tableprops deletetable ",
-                        },
-                        help: { title: "Help", items: "help " },
-                      },
-                      content_style:
-                        "body { font-family: 'Inter', Arial, sans-serif; font-size: 14px; line-height: 1.7; } p { margin: 0 0 10px; }",
-                      placeholder: "Write your company profile here...",
-                      images_upload_handler: (blobInfo) =>
-                        new Promise((resolve, reject) => {
-                          const reader = new FileReader();
-                          reader.onload = () => resolve(reader.result);
-                          reader.onerror = () => reject("Image upload failed");
-                          reader.readAsDataURL(blobInfo.blob());
-                        }),
-                    }}
-                  />
-                </div>
-              ) : (
-                <textarea
-                  value={formValues.about_company || ""}
-                  onChange={(e) => handleAboutCompanyChange(e.target.value)}
-                  className="w-full min-h-[220px] px-3.5 py-2.5 border border-slate-300 rounded-xl text-sm font-mono focus:ring-2 focus:ring-blue-100 focus:border-blue-400 transition-colors resize-y bg-slate-50"
-                  placeholder="<p>Write HTML here...</p>"
+              <FieldLabel>About Company</FieldLabel>
+              <div className="border border-slate-300 rounded-lg overflow-hidden">
+                <Editor
+                  tinymceScriptSrc="/tinymce/tinymce.min.js"
+                  licenseKey="gpl"
+                  value={formValues.about_company || ''}
+                  onEditorChange={(content) =>
+                    setFormValues((prev) => ({
+                      ...prev,
+                      about_company: content,
+                    }))
+                  }
+                  init={{
+                    height: 280,
+                    menubar: false,
+                    plugins: [
+                      'advlist',
+                      'autolink',
+                      'lists',
+                      'link',
+                      'image',
+                      'charmap',
+                      'preview',
+                      'anchor',
+                      'searchreplace',
+                      'visualblocks',
+                      'code',
+                      'fullscreen',
+                      'insertdatetime',
+                      'media',
+                      'table',
+                      'help',
+                      'wordcount',
+                    ],
+                    toolbar:
+                      'undo redo | blocks | bold italic underline forecolor | ' +
+                      'alignleft aligncenter alignright alignjustify | ' +
+                      'bullist numlist outdent indent | link image table | ' +
+                      'removeformat code | help',
+                    content_style:
+                      "body { font-family:'Inter',sans-serif; font-size:14px }",
+                    image_advtab: true,
+                    images_upload_handler: (blobInfo) =>
+                      new Promise((resolve, reject) => {
+                        const reader = new FileReader();
+                        reader.onload = () => resolve(reader.result);
+                        reader.onerror = () => reject('Image upload failed');
+                        reader.readAsDataURL(blobInfo.blob());
+                      }),
+                  }}
                 />
-              )}
-
-              <p className="mt-2 text-xs text-slate-500">
-                Use the rich text editor for formatting, or switch to HTML for
-                direct source editing.
-              </p>
+              </div>
             </div>
           </div>
         );
 
-      case "relations":
+      case 'relations':
         return (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
             <div>
-              <FieldLabel>Company user</FieldLabel>
+              <FieldLabel>Company User</FieldLabel>
               <select
                 name="company_user_id"
                 value={formValues.company_user_id}
                 onChange={handleInputChange}
-                className="w-full px-3.5 py-2.5 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-100 focus:border-blue-400 transition-colors"
+                className={commonClass}
                 disabled={loadingData}
               >
                 <option value="">
-                  {loadingData ? "Loading..." : "Select a user"}
+                  {loadingData ? 'Loading...' : 'Select a user'}
                 </option>
                 {userOptions.map((opt) => (
                   <option key={opt.value} value={opt.value}>
@@ -1322,18 +1271,17 @@ const AddCompany = () => {
                 ))}
               </select>
             </div>
-
             <div>
               <FieldLabel>Industry</FieldLabel>
               <select
                 name="industry_id"
                 value={formValues.industry_id}
                 onChange={handleInputChange}
-                className="w-full px-3.5 py-2.5 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-100 focus:border-blue-400 transition-colors"
+                className={commonClass}
                 disabled={loadingData}
               >
                 <option value="">
-                  {loadingData ? "Loading..." : "Select an industry"}
+                  {loadingData ? 'Loading...' : 'Select an industry'}
                 </option>
                 {industryOptions.map((opt) => (
                   <option key={opt.value} value={opt.value}>
@@ -1342,18 +1290,17 @@ const AddCompany = () => {
                 ))}
               </select>
             </div>
-
             <div>
               <FieldLabel>Sub‑industry</FieldLabel>
               <select
                 name="sub_industry_id"
                 value={formValues.sub_industry_id}
                 onChange={handleInputChange}
-                className="w-full px-3.5 py-2.5 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-100 focus:border-blue-400 transition-colors"
+                className={commonClass}
                 disabled={loadingData}
               >
                 <option value="">
-                  {loadingData ? "Loading..." : "Select a sub-industry"}
+                  {loadingData ? 'Loading...' : 'Select a sub-industry'}
                 </option>
                 {subIndustryOptions.map((opt) => (
                   <option key={opt.value} value={opt.value}>
@@ -1362,18 +1309,17 @@ const AddCompany = () => {
                 ))}
               </select>
             </div>
-
             <div>
-              <FieldLabel>Company size</FieldLabel>
+              <FieldLabel>Company Size</FieldLabel>
               <select
                 name="company_size_id"
                 value={formValues.company_size_id}
                 onChange={handleInputChange}
-                className="w-full px-3.5 py-2.5 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-100 focus:border-blue-400 transition-colors"
+                className={commonClass}
                 disabled={loadingData}
               >
                 <option value="">
-                  {loadingData ? "Loading..." : "Select a size"}
+                  {loadingData ? 'Loading...' : 'Select a size'}
                 </option>
                 {sizeOptions.map((opt) => (
                   <option key={opt.value} value={opt.value}>
@@ -1385,101 +1331,146 @@ const AddCompany = () => {
           </div>
         );
 
-      case "media":
+      case 'media':
         return (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
             <div>
               <FieldLabel>Logo</FieldLabel>
-              <div className="flex flex-col items-start gap-3">
-                <div className="w-28 h-28 rounded-xl border border-slate-200 bg-slate-50 flex items-center justify-center overflow-hidden">
-                  {formValues.logo ? (
-                    <img
-                      src={
-                        formValues.logo.startsWith("blob:")
-                          ? formValues.logo
-                          : getImageUrl(formValues.logo)
-                      }
-                      alt="Logo"
-                      className="w-full h-full object-cover"
-                      onError={(e) => {
-                        e.target.style.display = "none";
-                      }}
-                    />
-                  ) : (
-                    <MdApartment size={28} className="text-slate-300" />
-                  )}
-                </div>
-                <label className="inline-flex items-center gap-2 px-3.5 py-2 bg-blue-50 hover:bg-blue-100 text-blue-700 text-sm font-medium rounded-lg cursor-pointer transition-colors">
-                  <MdCloudUpload size={16} />
-                  {formValues.logo ? "Change logo" : "Upload logo"}
+              <div className="flex items-start gap-4">
+                {formValues.logo ? (
+                  <div className="relative group">
+                    {renderImagePreview(
+                      formValues.logo,
+                      'Logo',
+                      'w-20 h-20 object-cover rounded-lg',
+                    )}
+                    <button
+                      type="button"
+                      onClick={handleRemoveLogo}
+                      className="absolute -top-2 -right-2 p-1 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors shadow"
+                    >
+                      <svg
+                        className="w-4 h-4"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M6 18L18 6M6 6l12 12"
+                        />
+                      </svg>
+                    </button>
+                  </div>
+                ) : (
+                  <div className="w-20 h-20 bg-slate-100 rounded-lg border-2 border-dashed border-slate-300 flex items-center justify-center">
+                    <MdImage size={26} className="text-slate-400" />
+                  </div>
+                )}
+                <div>
                   <input
                     type="file"
                     accept="image/*"
-                    onChange={(e) => handleFileChange(e, "logo")}
+                    onChange={(e) => handleFileChange(e, 'logo')}
                     className="hidden"
+                    id="logo-upload"
                   />
-                </label>
+                  <label
+                    htmlFor="logo-upload"
+                    className="px-4 py-2 bg-blue-50 text-[#2c0eee] rounded-lg cursor-pointer hover:bg-blue-100 transition-colors text-sm font-medium inline-flex items-center gap-2"
+                  >
+                    <MdCloudUpload size={16} />
+                    {formValues.logo ? 'Change Logo' : 'Choose Logo'}
+                  </label>
+                  <p className="mt-1 text-xs text-slate-400">
+                    PNG, JPG, SVG (Max 5MB)
+                  </p>
+                </div>
               </div>
             </div>
 
             <div>
-              <FieldLabel>Banner image</FieldLabel>
-              <div className="flex flex-col items-start gap-3">
-                <div className="w-full sm:w-64 h-28 rounded-xl border border-slate-200 bg-slate-50 flex items-center justify-center overflow-hidden">
-                  {formValues.banner_image ? (
-                    <img
-                      src={
-                        formValues.banner_image.startsWith("blob:")
-                          ? formValues.banner_image
-                          : getImageUrl(formValues.banner_image)
-                      }
-                      alt="Banner"
-                      className="w-full h-full object-cover"
-                      onError={(e) => {
-                        e.target.style.display = "none";
-                      }}
-                    />
-                  ) : (
-                    <MdImage size={28} className="text-slate-300" />
-                  )}
-                </div>
-                <label className="inline-flex items-center gap-2 px-3.5 py-2 bg-blue-50 hover:bg-blue-100 text-blue-700 text-sm font-medium rounded-lg cursor-pointer transition-colors">
-                  <MdCloudUpload size={16} />
-                  {formValues.banner_image ? "Change banner" : "Upload banner"}
+              <FieldLabel>Banner Image</FieldLabel>
+              <div className="flex items-start gap-4">
+                {formValues.banner_image ? (
+                  <div className="relative group">
+                    {renderImagePreview(
+                      formValues.banner_image,
+                      'Banner',
+                      'w-40 h-20 object-cover rounded-lg',
+                    )}
+                    <button
+                      type="button"
+                      onClick={handleRemoveBanner}
+                      className="absolute -top-2 -right-2 p-1 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors shadow"
+                    >
+                      <svg
+                        className="w-4 h-4"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M6 18L18 6M6 6l12 12"
+                        />
+                      </svg>
+                    </button>
+                  </div>
+                ) : (
+                  <div className="w-40 h-20 bg-slate-100 rounded-lg border-2 border-dashed border-slate-300 flex items-center justify-center">
+                    <MdImage size={26} className="text-slate-400" />
+                  </div>
+                )}
+                <div>
                   <input
                     type="file"
                     accept="image/*"
-                    onChange={(e) => handleFileChange(e, "banner_image")}
+                    onChange={(e) => handleFileChange(e, 'banner_image')}
                     className="hidden"
+                    id="banner-upload"
                   />
-                </label>
+                  <label
+                    htmlFor="banner-upload"
+                    className="px-4 py-2 bg-blue-50 text-[#2c0eee] rounded-lg cursor-pointer hover:bg-blue-100 transition-colors text-sm font-medium inline-flex items-center gap-2"
+                  >
+                    <MdCloudUpload size={16} />
+                    {formValues.banner_image ? 'Change Banner' : 'Choose Banner'}
+                  </label>
+                  <p className="mt-1 text-xs text-slate-400">
+                    PNG, JPG (Max 5MB)
+                  </p>
+                </div>
               </div>
             </div>
           </div>
         );
 
-      case "status":
+      case 'status':
         return (
           <div className="space-y-6 max-w-xl">
-            {/* Company Status */}
             <div>
               <FieldLabel required>Company Status</FieldLabel>
               <div className="flex flex-wrap gap-6 pt-1">
-                {["active", "inactive", "pending", "blocked"].map((status) => (
+                {['active', 'inactive', 'pending', 'blocked'].map((s) => (
                   <label
-                    key={status}
+                    key={s}
                     className="flex items-center gap-2.5 cursor-pointer"
                   >
                     <input
                       type="radio"
                       name="company_status"
-                      value={status}
-                      checked={formValues.company_status === status}
+                      value={s}
+                      checked={formValues.company_status === s}
                       onChange={handleInputChange}
                       className="w-4 h-4 border-slate-300 text-blue-600 focus:ring-2 focus:ring-blue-100"
                     />
                     <span className="text-sm text-slate-700 capitalize">
-                      {status}
+                      {s}
                     </span>
                   </label>
                 ))}
@@ -1489,41 +1480,23 @@ const AddCompany = () => {
               </p>
             </div>
 
-            {/* Internal Status (commented out but kept for reference) */}
-            {/* 
-            <div>
-              <FieldLabel>Internal Status</FieldLabel>
-              <div className="flex flex-wrap gap-6 pt-1">
-                {["active", "inactive"].map((status) => (
-                  <label key={status} className="flex items-center gap-2.5 cursor-pointer">
-                    <input
-                      type="radio"
-                      name="is_status"
-                      value={status}
-                      checked={formValues.is_status === status}
-                      onChange={handleInputChange}
-                      className="w-4 h-4 border-slate-300 text-blue-600 focus:ring-2 focus:ring-blue-100"
-                    />
-                    <span className="text-sm text-slate-700 capitalize">{status}</span>
-                  </label>
-                ))}
-              </div>
-            </div>
-            */}
-
-            {/* Trending */}
             <div className="pt-2 border-t border-slate-100">
               <FieldLabel>Trending</FieldLabel>
               <div className="flex items-center gap-3 pt-0.5">
-                <Toggle
-                  name="is_trending"
-                  checked={formValues.is_trending}
-                  onChange={handleInputChange}
-                />
+                <label className="relative inline-flex items-center cursor-pointer">
+                  <input
+                    type="checkbox"
+                    name="is_trending"
+                    checked={formValues.is_trending}
+                    onChange={handleInputChange}
+                    className="sr-only peer"
+                  />
+                  <div className="w-11 h-6 bg-slate-300 peer-checked:bg-blue-600 rounded-full transition-colors duration-300 after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:rounded-full after:h-5 after:w-5 after:shadow after:transition-transform after:duration-300 peer-checked:after:translate-x-5" />
+                </label>
                 <span className="text-sm text-slate-600">
                   {formValues.is_trending
-                    ? "Marked as trending"
-                    : "Not trending"}
+                    ? 'Marked as trending'
+                    : 'Not trending'}
                 </span>
               </div>
               <p className="text-xs text-slate-400 mt-1.5">
@@ -1538,15 +1511,15 @@ const AddCompany = () => {
     }
   };
 
-  // ─── Main render ──────────────────────────────────────────────
+  // ─── Main render ──────────────────────────────────────────
   return (
-    <div className="min-h-screen pb-16">
-      {/* ─── Sticky action bar ─────────────────────────────────── */}
+    <div className="min-h-screen pb-16 bg-[#F4F5FA]">
+      {/* ─── Sticky action bar ───────────────────────────────── */}
       <div className="bg-white/85 backdrop-blur-md border-b border-slate-200 sticky top-0 z-10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between gap-4">
           <div className="flex items-center gap-3 min-w-0">
             <button
-              onClick={() => navigate("/companies")}
+              onClick={handleBack}
               className="p-2 rounded-lg hover:bg-slate-100 transition-colors flex-shrink-0"
               aria-label="Back"
             >
@@ -1557,14 +1530,15 @@ const AddCompany = () => {
                 Companies
               </p>
               <p className="text-sm font-semibold text-slate-800 truncate leading-tight max-w-[45vw]">
-                {heroName}
+                Add New Company
               </p>
             </div>
           </div>
+
           <div className="flex items-center gap-2 flex-shrink-0">
             <button
               type="button"
-              onClick={() => navigate("/companies")}
+              onClick={handleBack}
               className="hidden sm:inline-flex items-center gap-1.5 px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-600 text-sm font-medium rounded-lg transition-colors"
             >
               <MdCancel size={16} />
@@ -1581,84 +1555,64 @@ const AddCompany = () => {
               ) : (
                 <MdSave size={16} />
               )}
-              {loading ? "Creating..." : "Create Company"}
+              {loading ? 'Creating...' : 'Create Company'}
             </button>
           </div>
         </div>
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 pt-6">
-        {/* ─── Hero ───────────────────────────────────────────────── */}
+        {/* ─── Hero (fixed dark gradient) ─────────────────── */}
         <motion.div
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.35, ease: "easeOut" }}
+          transition={{ duration: 0.35, ease: 'easeOut' }}
           className="relative rounded-2xl overflow-hidden shadow-lg shadow-slate-900/5"
         >
-          <div className="relative h-44 sm:h-52">
-            {formValues.banner_image ? (
-              <img
-                src={
-                  formValues.banner_image.startsWith("blob:")
-                    ? formValues.banner_image
-                    : getImageUrl(formValues.banner_image)
-                }
-                alt="Banner"
-                className="w-full h-full object-cover"
-                onError={(e) => {
-                  e.target.style.display = "none";
-                }}
-              />
-            ) : (
-              <div className="w-full h-full bg-gradient-to-br from-slate-900 via-blue-900 to-indigo-800" />
-            )}
-            <div className="absolute inset-0 bg-gradient-to-t from-slate-900/95 via-slate-900/50 to-slate-900/10" />
+          <div className="relative h-44 sm:h-52 bg-gradient-to-br from-slate-950 via-indigo-950 to-purple-950">
+            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/30 to-transparent" />
+            <div className="absolute inset-0 opacity-10">
+              <div className="absolute top-0 right-0 w-64 h-64 bg-white rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
+              <div className="absolute bottom-0 left-0 w-48 h-48 bg-white rounded-full blur-3xl translate-y-1/2 -translate-x-1/2" />
+            </div>
           </div>
 
           <div className="absolute inset-x-0 bottom-0 px-5 sm:px-7 pb-5 pt-3">
             <div className="flex flex-col sm:flex-row sm:items-end gap-4">
-              {/* Logo placeholder */}
-              <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-white p-1.5 shadow-xl flex-shrink-0">
+              <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-white/10 backdrop-blur-sm p-1.5 shadow-xl flex-shrink-0 border border-white/10">
                 {formValues.logo ? (
                   <img
                     src={
-                      formValues.logo.startsWith("blob:")
+                      formValues.logo.startsWith('blob:')
                         ? formValues.logo
                         : getImageUrl(formValues.logo)
                     }
                     alt="Logo"
-                    className="w-full h-full object-cover rounded-xl"
+                    className="w-full h-full rounded-xl object-cover"
                     onError={(e) => {
-                      e.target.style.display = "none";
+                      e.target.style.display = 'none';
                     }}
                   />
                 ) : (
-                  <div className="w-full h-full rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white font-bold text-lg">
-                    {initials || <MdApartment size={22} />}
+                  <div className="w-full h-full rounded-xl bg-gradient-to-br from-blue-400 to-indigo-500 flex items-center justify-center text-white font-bold text-lg">
+                    {initials || <MdBusiness size={24} />}
                   </div>
                 )}
               </div>
 
-              {/* Name + chips */}
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 flex-wrap">
                   <h1 className="text-xl sm:text-2xl font-bold text-white truncate max-w-full">
-                    {heroName}
+                    {companyName}
                   </h1>
-                  {formValues.is_trending && (
-                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-orange-400/20 text-orange-300 ring-1 ring-orange-400/30">
-                      <MdTrendingUp size={12} />
-                      Trending
-                    </span>
-                  )}
+                  <StatusPill status={companyStatus} />
+                  {isTrending && <TrendingBadge trending={true} />}
                 </div>
                 <div className="mt-2 flex items-center gap-2 flex-wrap">
-                  <StatusPill status={formValues.company_status} />
-                  <span className="text-xs text-white/70">New Company</span>
-                  {formValues.website && (
+                  {formValues.website ? (
                     <a
                       href={
-                        formValues.website.startsWith("http")
+                        formValues.website.startsWith('http')
                           ? formValues.website
                           : `https://${formValues.website}`
                       }
@@ -1666,9 +1620,10 @@ const AddCompany = () => {
                       rel="noopener noreferrer"
                       className="inline-flex items-center gap-1 text-xs text-white/80 hover:text-white transition-colors"
                     >
-                      <MdOpenInNew size={11} />
-                      Website
+                      <MdLink size={12} /> Website
                     </a>
+                  ) : (
+                    <span className="text-xs text-white/50">New Company</span>
                   )}
                 </div>
               </div>
@@ -1676,60 +1631,58 @@ const AddCompany = () => {
           </div>
         </motion.div>
 
-        {/* ─── Quick stat strip ──────────────────────────────────── */}
+        {/* ─── Quick stat strip ─────────────────────────────── */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-4">
           <div className="flex items-center gap-2.5 rounded-xl bg-white/80 backdrop-blur-sm px-3.5 py-2.5 border border-slate-200 shadow-sm">
-            <MdBusiness size={16} className="text-slate-400 flex-shrink-0" />
+            <MdFlag size={16} className="text-slate-400 flex-shrink-0" />
+            <div className="min-w-0">
+              <p className="text-[10px] text-slate-500 leading-tight">
+                Status
+              </p>
+              <p className="text-sm font-semibold text-slate-700 truncate capitalize">
+                {companyStatus}
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2.5 rounded-xl bg-white/80 backdrop-blur-sm px-3.5 py-2.5 border border-slate-200 shadow-sm">
+            <MdCategory size={16} className="text-slate-400 flex-shrink-0" />
             <div className="min-w-0">
               <p className="text-[10px] text-slate-500 leading-tight">
                 Industry
               </p>
               <p className="text-sm font-semibold text-slate-700 truncate">
-                {formValues.industry_id
-                  ? industryOptions.find(
-                      (opt) => opt.value === formValues.industry_id,
-                    )?.label || "—"
-                  : "—"}
+                {industryOptions.find(
+                  (o) => o.value === formValues.industry_id,
+                )?.label || '—'}
               </p>
             </div>
           </div>
           <div className="flex items-center gap-2.5 rounded-xl bg-white/80 backdrop-blur-sm px-3.5 py-2.5 border border-slate-200 shadow-sm">
-            <MdGroups size={16} className="text-slate-400 flex-shrink-0" />
-            <div className="min-w-0">
-              <p className="text-[10px] text-slate-500 leading-tight">Size</p>
-              <p className="text-sm font-semibold text-slate-700 truncate">
-                {formValues.company_size_id
-                  ? sizeOptions.find(
-                      (opt) => opt.value === formValues.company_size_id,
-                    )?.label || "—"
-                  : "—"}
-              </p>
-            </div>
-          </div>
-          <div className="flex items-center gap-2.5 rounded-xl bg-white/80 backdrop-blur-sm px-3.5 py-2.5 border border-slate-200 shadow-sm">
-            <MdTrendingUp size={16} className="text-slate-400 flex-shrink-0" />
+            <MdPerson size={16} className="text-slate-400 flex-shrink-0" />
             <div className="min-w-0">
               <p className="text-[10px] text-slate-500 leading-tight">
-                Trending
+                Company User
               </p>
               <p className="text-sm font-semibold text-slate-700 truncate">
-                {formValues.is_trending ? "Yes" : "No"}
+                {userOptions.find(
+                  (o) => o.value === formValues.company_user_id,
+                )?.label || '—'}
               </p>
             </div>
           </div>
           <div className="flex items-center gap-2.5 rounded-xl bg-white/80 backdrop-blur-sm px-3.5 py-2.5 border border-slate-200 shadow-sm">
             <MdImage size={16} className="text-slate-400 flex-shrink-0" />
             <div className="min-w-0">
-              <p className="text-[10px] text-slate-500 leading-tight">Images</p>
+              <p className="text-[10px] text-slate-500 leading-tight">Media</p>
               <p className="text-sm font-semibold text-slate-700 truncate">
-                {formValues.logo ? "Logo ✓" : "No logo"}
-                {formValues.banner_image ? " & Banner ✓" : ""}
+                {formValues.logo ? 'Logo ✓' : 'No logo'}
+                {formValues.banner_image ? ' & Banner ✓' : ''}
               </p>
             </div>
           </div>
         </div>
 
-        {/* ─── Tabs ───────────────────────────────────────────────── */}
+        {/* ─── Tabs ─────────────────────────────────────────── */}
         <div className="mt-6 bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
           <div className="flex overflow-x-auto border-b border-slate-200 px-2">
             {TABS.map((tab) => {
@@ -1742,8 +1695,8 @@ const AddCompany = () => {
                   onClick={() => setActiveTab(tab.id)}
                   className={`relative flex items-center gap-1.5 px-4 py-3.5 text-sm font-medium whitespace-nowrap transition-colors ${
                     active
-                      ? "text-blue-600"
-                      : "text-slate-500 hover:text-slate-700"
+                      ? 'text-blue-600'
+                      : 'text-slate-500 hover:text-slate-700'
                   }`}
                 >
                   <Icon size={16} />
@@ -1753,7 +1706,7 @@ const AddCompany = () => {
                       layoutId="add-company-tab-underline"
                       className="absolute left-2 right-2 -bottom-px h-0.5 bg-blue-600 rounded-full"
                       transition={{
-                        type: "spring",
+                        type: 'spring',
                         stiffness: 500,
                         damping: 35,
                       }}
@@ -1773,7 +1726,33 @@ const AddCompany = () => {
                 exit={{ opacity: 0, y: -6 }}
                 transition={{ duration: 0.18 }}
               >
-                {renderTabContent()}
+                <form onSubmit={handleSubmit}>
+                  {renderTabContent()}
+
+                  <div className="flex gap-3 mt-6 pt-4 border-t border-slate-200">
+                    <button
+                      type="button"
+                      onClick={handleBack}
+                      className="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-600 py-2.5 px-4 rounded-lg transition-colors font-medium"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={loading}
+                      className="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-2.5 px-4 rounded-lg transition-colors font-medium disabled:opacity-50 shadow-sm shadow-blue-600/20"
+                    >
+                      {loading ? (
+                        <span className="flex items-center justify-center gap-2">
+                          <span className="w-4 h-4 border-2 border-white/60 border-t-transparent rounded-full animate-spin" />
+                          Creating...
+                        </span>
+                      ) : (
+                        'Create Company'
+                      )}
+                    </button>
+                  </div>
+                </form>
               </motion.div>
             </AnimatePresence>
           </div>
@@ -1782,7 +1761,7 @@ const AddCompany = () => {
         {/* Mobile-only cancel button */}
         <button
           type="button"
-          onClick={() => navigate("/companies")}
+          onClick={handleBack}
           className="sm:hidden mt-4 w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-600 text-sm font-medium rounded-lg transition-colors"
         >
           <MdCancel size={16} />

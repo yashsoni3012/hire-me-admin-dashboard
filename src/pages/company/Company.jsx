@@ -1,3 +1,4 @@
+
 // import { useState, useEffect, useMemo, useCallback, useRef } from "react";
 // import { useNavigate } from "react-router-dom";
 // import Table from "../../components/common/Table";
@@ -13,9 +14,23 @@
 //   MdSearch,
 //   MdRefresh,
 //   MdVisibility,
+//   MdBusiness,
+//   MdPerson,
 // } from "react-icons/md";
 // import { useAuth } from "../../context/AuthContext";
 // import { fetchUsers } from "../../utils/getUserName";
+
+// // ─── Profile type tabs (top-level) ─────────────────────────────
+// // Every company/consultant record carries a "profile_type" field from
+// // the backend which is either "company" or "consultant". These two
+// // top-level tabs split the whole page by that field; the existing
+// // status tabs (All/Active/Inactive/Blocked/Pending/Trending) then
+// // operate *within* whichever profile type is currently selected.
+// const PROFILE_TYPES = [
+//   // { key: "all", label: "All", icon: MdBusiness },
+//   { key: "company", label: "Company", icon: MdBusiness },
+//   { key: "consultant", label: "Consultant", icon: MdPerson },
+// ];
 
 // // ─── Status options (must match backend ENUM) ──────────────────
 // const STATUS_OPTIONS = [
@@ -111,10 +126,23 @@
 //   return [];
 // };
 
+// // ─── Helper: normalize a profile_type value down to "company" |
+// // "consultant". Anything missing/unrecognized falls back to "company"
+// // so older records without the field still show up somewhere.
+// const normalizeProfileType = (value) => {
+//   const v = String(value || "")
+//     .trim()
+//     .toLowerCase();
+//   return v === "consultant" ? "consultant" : "company";
+// };
+
 // const Companies = () => {
 //   const navigate = useNavigate();
 //   const { user } = useAuth();
 //   const userId = user?.id || 1;
+
+//   // ─── Top-level Company / Consultant tab ────────────────────────
+//   const [profileTab, setProfileTab] = useState("all"); // "all" | "company" | "consultant"
 
 //   // ─── Pagination & Filters ──────────────────────────────────────
 //   const [page, setPage] = useState(1);
@@ -150,7 +178,11 @@
 //   // even showed up) were derived from `data`, so switching pages or
 //   // filters made counts jump around or made the Trending tab
 //   // appear/disappear at random.
-//   const [statusCounts, setStatusCounts] = useState({
+//   //
+//   // Counts are now scoped PER profile type ("company" / "consultant")
+//   // since each top-level tab has its own independent set of status
+//   // counts.
+//   const emptyStatusCounts = () => ({
 //     all: 0,
 //     active: 0,
 //     inactive: 0,
@@ -158,8 +190,6 @@
 //     pending: 0,
 //     trending: 0,
 //   });
-//   const [countsLoading, setCountsLoading] = useState(false);
-//   const countsRequestIdRef = useRef(0);
 
 //   // ─── Debounce the search box ────────────────────────────────────
 //   useEffect(() => {
@@ -202,6 +232,7 @@
 //     about_company: item.about_company || "",
 //     gst_number: item.gst_number || "",
 //     company_status: item.company_status || "inactive",
+//     profile_type: normalizeProfileType(item.profile_type),
 //     is_status:
 //       item.is_status === true ||
 //       item.is_status === "true" ||
@@ -254,128 +285,71 @@
 //   // quick row-level status/trending change so the whole table doesn't
 //   // flash into a loading state for what is a tiny, already-optimistic
 //   // update.
-//   const load = useCallback(
-//     async ({ silent = false } = {}) => {
-//       const requestId = ++requestIdRef.current;
-//       if (!silent) setLoading(true);
-//       setError(null);
-//       try {
-//         await loadUsers();
-
-//         // Build query parameters
-//         const params = {
-//           page,
-//           limit,
-//         };
-//         if (debouncedSearch) params.search = debouncedSearch;
-//         if (statusFilter === "trending") {
-//           params.is_trending = true;
-//         } else if (statusFilter !== "all") {
-//           // active | inactive | blocked | pending
-//           params.company_status = statusFilter;
-//         }
-
-//         const response = await companyService.getAll(params);
-
-//         // Ignore this response if a newer request has already been issued
-//         if (requestIdRef.current !== requestId) return;
-
-//         const rawData = extractList(response);
-//         const items = rawData.map(normalizeCompany);
-
-//         // Extract pagination metadata
-//         const totalItems = extractTotal(response) || rawData.length || 0;
-
-//         setData(items);
-//         setTotal(totalItems);
-//       } catch (err) {
-//         if (requestIdRef.current !== requestId) return;
-//         console.error("Load error:", err);
-//         let errorMessage = "Failed to load companies";
-//         if (
-//           err.message?.includes("NetworkError") ||
-//           err.message?.includes("Failed to fetch")
-//         ) {
-//           errorMessage = "Network error: Unable to connect to the server.";
-//         } else if (err.status === 401 || err.status === 403) {
-//           errorMessage = "Access denied. Please log in again.";
-//         } else if (err.status === 404) {
-//           errorMessage = "API endpoint not found. Please check the API URL.";
-//         } else if (err.message) {
-//           errorMessage = err.message;
-//         }
-//         setError(errorMessage);
-//         showError(errorMessage);
-//       } finally {
-//         if (requestIdRef.current === requestId && !silent) setLoading(false);
-//       }
-//     },
-//     [page, limit, debouncedSearch, statusFilter],
-//   );
-
-//   // ─── Load accurate per-status counts for the tabs ───────────────
-//   // Fired once on mount, and again after any action that could change
-//   // a company's status/trending flag/existence (status change, trending
-//   // toggle, delete) so the tab numbers — and whether the Trending tab
-//   // is shown at all — always reflect the full dataset, not just the
-//   // current page.
-//   const loadStatusCounts = useCallback(async () => {
-//     const requestId = ++countsRequestIdRef.current;
-//     setCountsLoading(true);
+//   const load = useCallback(async ({ silent = false } = {}) => {
+//     const requestId = ++requestIdRef.current;
+//     if (!silent) setLoading(true);
+//     setError(null);
 //     try {
-//       const [
-//         allRes,
-//         activeRes,
-//         inactiveRes,
-//         blockedRes,
-//         pendingRes,
-//         trendingRes,
-//       ] = await Promise.all([
-//         companyService.getAll({ page: 1, limit: 1 }),
-//         companyService.getAll({ page: 1, limit: 1, company_status: "active" }),
-//         companyService.getAll({
-//           page: 1,
-//           limit: 1,
-//           company_status: "inactive",
-//         }),
-//         companyService.getAll({ page: 1, limit: 1, company_status: "blocked" }),
-//         companyService.getAll({ page: 1, limit: 1, company_status: "pending" }),
-//         companyService.getAll({ page: 1, limit: 1, is_trending: true }),
-//       ]);
+//       await loadUsers();
 
-//       if (countsRequestIdRef.current !== requestId) return;
+//       // Build query parameters
+//       // Fetch the complete dataset once. The API currently ignores
+//       // profile_type and search filters, so those are applied locally.
+//       const response = await companyService.getAll({ page: 1, limit: 100 });
 
-//       setStatusCounts({
-//         all: extractTotal(allRes),
-//         active: extractTotal(activeRes),
-//         inactive: extractTotal(inactiveRes),
-//         blocked: extractTotal(blockedRes),
-//         pending: extractTotal(pendingRes),
-//         trending: extractTotal(trendingRes),
-//       });
+//       // Ignore this response if a newer request has already been issued
+//       if (requestIdRef.current !== requestId) return;
+
+//       const rawData = extractList(response);
+//       const items = rawData.map(normalizeCompany);
+
+//       // Extract pagination metadata
+//       const totalItems = rawData.length;
+
+//       setData(items);
+//       setTotal(totalItems);
 //     } catch (err) {
-//       // Don't blow up the page over count fetching — just keep the
-//       // previous (or zeroed) counts and log it.
-//       console.error("Failed to load status counts:", err);
+//       if (requestIdRef.current !== requestId) return;
+//       console.error("Load error:", err);
+//       let errorMessage = "Failed to load companies";
+//       if (
+//         err.message?.includes("NetworkError") ||
+//         err.message?.includes("Failed to fetch")
+//       ) {
+//         errorMessage = "Network error: Unable to connect to the server.";
+//       } else if (err.status === 401 || err.status === 403) {
+//         errorMessage = "Access denied. Please log in again.";
+//       } else if (err.status === 404) {
+//         errorMessage = "API endpoint not found. Please check the API URL.";
+//       } else if (err.message) {
+//         errorMessage = err.message;
+//       }
+//       setError(errorMessage);
+//       showError(errorMessage);
 //     } finally {
-//       if (countsRequestIdRef.current === requestId) setCountsLoading(false);
+//       if (requestIdRef.current === requestId && !silent) setLoading(false);
 //     }
 //   }, []);
 
-//   // ─── Reload on filter/page changes ────────────────────────────
+//   // ─── Reload after the complete dataset changes ────────────────
 //   useEffect(() => {
 //     load();
 //   }, [load]);
 
-//   // ─── Load tab counts once on mount ───────────────────────────
-//   useEffect(() => {
-//     loadStatusCounts();
-//   }, [loadStatusCounts]);
-
-//   // Reset page when search or filter changes
+//   // Reset page when search, status filter, or top-level profile tab changes
 //   useEffect(() => {
 //     setPage(1);
-//   }, [debouncedSearch, statusFilter]);
+//   }, [debouncedSearch, statusFilter, profileTab]);
+
+//   // Reset the status filter back to "all" whenever the top-level
+//   // Company/Consultant tab is switched, so you don't land on
+//   // "Consultant → Blocked" just because that's where you left off on
+//   // the Company tab.
+//   const handleProfileTabChange = (key) => {
+//     if (key === profileTab) return;
+//     setProfileTab(key);
+//     setStatusFilter("all");
+//   };
 
 //   // ─── Client-side search safety net ────────────────────────────
 //   // Re-applies the debounced search text to whatever rows the server
@@ -385,9 +359,19 @@
 //   // you see still respects what you typed — this is what guarantees
 //   // search actually works regardless of backend behavior.
 //   const filteredData = useMemo(() => {
-//     if (!debouncedSearch) return data;
 //     const q = debouncedSearch.toLowerCase();
 //     return data.filter((c) => {
+//       if (profileTab !== "all" && c.profile_type !== profileTab) return false;
+//       if (statusFilter === "trending" && !c.is_trending) return false;
+//       if (
+//         statusFilter !== "all" &&
+//         statusFilter !== "trending" &&
+//         c.company_status !== statusFilter
+//       ) {
+//         return false;
+//       }
+//       if (!q) return true;
+
 //       const searchFields = [
 //         c.company_name,
 //         c.slug,
@@ -404,12 +388,43 @@
 //           searchFields.push(ind.industry_name || ind.name);
 //         });
 //       }
+//       if (c.SubIndustries && Array.isArray(c.SubIndustries)) {
+//         c.SubIndustries.forEach((subIndustry) => {
+//           searchFields.push(subIndustry.sub_industry_name || subIndustry.name);
+//         });
+//       }
 
 //       return searchFields
 //         .filter(Boolean)
 //         .some((field) => String(field).toLowerCase().includes(q));
 //     });
-//   }, [data, debouncedSearch]);
+//   }, [data, debouncedSearch, profileTab, statusFilter]);
+
+//   const paginatedData = useMemo(
+//     () => filteredData.slice((page - 1) * limit, page * limit),
+//     [filteredData, page, limit],
+//   );
+
+//   const statusCounts = useMemo(() => {
+//     const counts = {
+//       all: emptyStatusCounts(),
+//       company: emptyStatusCounts(),
+//       consultant: emptyStatusCounts(),
+//     };
+
+//     data.forEach((company) => {
+//       [counts.all, counts[company.profile_type]].forEach((profileCounts) => {
+//         if (!profileCounts) return;
+//         profileCounts.all += 1;
+//         if (profileCounts[company.company_status] !== undefined) {
+//           profileCounts[company.company_status] += 1;
+//         }
+//         if (company.is_trending) profileCounts.trending += 1;
+//       });
+//     });
+
+//     return counts;
+//   }, [data]);
 
 //   // ─── Toggle / change handlers ───────────────────────────────────
 //   const handleCompanyStatusChange = async (id, newStatus) => {
@@ -431,7 +446,6 @@
 //       // active tab) without flashing the whole table into a loading
 //       // state.
 //       load({ silent: true });
-//       loadStatusCounts();
 //     } catch (err) {
 //       // Roll back on failure
 //       setData(prevData);
@@ -471,7 +485,6 @@
 //       });
 //       showSuccess(`Trending updated to ${newTrending ? "Yes" : "No"}`);
 //       load({ silent: true });
-//       loadStatusCounts();
 //     } catch (err) {
 //       setData(prevData);
 //       showError(err.message || "Failed to update trending");
@@ -490,7 +503,6 @@
 //       await companyService.delete(deleteId);
 //       showSuccess("Company deleted successfully");
 //       load();
-//       loadStatusCounts();
 //     } catch (err) {
 //       console.error("Delete error:", err);
 //       showError(err.message || "Failed to delete company");
@@ -500,21 +512,22 @@
 //     }
 //   };
 
-//   // ─── Tabs ──────────────────────────────────────────────────────
-//   // Counts come from `statusCounts` (a dedicated, page/filter-independent
-//   // fetch) rather than being derived from `data`, which only ever holds
-//   // the current page's rows. Trending tab visibility is likewise driven
-//   // by the true total, so it no longer flickers in and out as you page
-//   // through or switch filters.
-//   const hasTrending = statusCounts.trending > 0;
+//   // ─── Status Tabs (scoped to the active profile tab) ─────────────
+//   // Counts come from `statusCounts[profileTab]` (a dedicated,
+//   // page/filter-independent fetch) rather than being derived from
+//   // `data`, which only ever holds the current page's rows. Trending
+//   // tab visibility is likewise driven by the true total, so it no
+//   // longer flickers in and out as you page through or switch filters.
+//   const activeCounts = statusCounts[profileTab] || emptyStatusCounts();
+//   const hasTrending = activeCounts.trending > 0;
 //   const tabs = [
-//     { key: "all", label: "All", count: statusCounts.all },
-//     { key: "active", label: "Active", count: statusCounts.active },
-//     { key: "inactive", label: "Inactive", count: statusCounts.inactive },
-//     { key: "blocked", label: "Blocked", count: statusCounts.blocked },
-//     { key: "pending", label: "Pending", count: statusCounts.pending },
+//     { key: "all", label: "All", count: activeCounts.all },
+//     { key: "active", label: "Active", count: activeCounts.active },
+//     { key: "inactive", label: "Inactive", count: activeCounts.inactive },
+//     { key: "blocked", label: "Blocked", count: activeCounts.blocked },
+//     { key: "pending", label: "Pending", count: activeCounts.pending },
 //     ...(hasTrending
-//       ? [{ key: "trending", label: "Trending", count: statusCounts.trending }]
+//       ? [{ key: "trending", label: "Trending", count: activeCounts.trending }]
 //       : []),
 //   ];
 
@@ -556,7 +569,7 @@
 //         ),
 //     },
 //     {
-//       header: "Company",
+//       header: profileTab === "consultant" ? "Consultant" : "Company",
 //       key: "company_name",
 //       render: (v, row) => (
 //         <div>
@@ -742,7 +755,7 @@
 //         <div>
 //           <h1 className="text-2xl font-bold text-gray-900">Companies</h1>
 //           <p className="text-sm text-gray-500 mt-1">
-//             Manage registered companies
+//             Manage registered companies and consultants
 //           </p>
 //         </div>
 //         <div className="flex items-center gap-2">
@@ -763,9 +776,40 @@
 //         </div>
 //       </div>
 
+//       {/* Top-level Company / Consultant tabs */}
+//       <div className="flex items-center gap-2 bg-gray-100 p-1 rounded-xl w-full sm:w-fit">
+//         {PROFILE_TYPES.map(({ key, label, icon: Icon }) => {
+//           const isActive = profileTab === key;
+//           const count = statusCounts[key]?.all ?? 0;
+//           return (
+//             <button
+//               key={key}
+//               onClick={() => handleProfileTabChange(key)}
+//               className={`flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-all flex-1 sm:flex-initial ${
+//                 isActive
+//                   ? "bg-white text-blue-600 shadow-sm"
+//                   : "text-gray-500 hover:text-gray-700"
+//               }`}
+//             >
+//               <Icon size={16} />
+//               {label}
+//               <span
+//                 className={`text-xs px-1.5 py-0.5 rounded-md font-semibold ${
+//                   isActive
+//                     ? "bg-blue-50 text-blue-600"
+//                     : "bg-gray-200 text-gray-500"
+//                 }`}
+//               >
+//                 {count}
+//               </span>
+//             </button>
+//           );
+//         })}
+//       </div>
+
 //       {/* Table Card */}
 //       <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-//         {/* Top bar with search and tabs */}
+//         {/* Top bar with search and status tabs */}
 //         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-5 py-4 border-b border-gray-100">
 //           <div className="relative w-full sm:w-72">
 //             <MdSearch
@@ -776,16 +820,12 @@
 //               type="text"
 //               value={search}
 //               onChange={(e) => setSearch(e.target.value)}
-//               placeholder="Search companies..."
+//               placeholder={`Search ${profileTab === "consultant" ? "consultants" : "companies"}...`}
 //               className="w-full pl-9 pr-3 py-2 text-sm rounded-full border border-gray-200 bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-300 transition-colors"
 //             />
 //           </div>
 
-//           <div
-//             className={`flex items-center gap-5 text-sm flex-wrap transition-opacity ${
-//               countsLoading ? "opacity-70" : "opacity-100"
-//             }`}
-//           >
+//           <div className="flex items-center gap-5 text-sm flex-wrap">
 //             {tabs.map((tab) => (
 //               <button
 //                 key={tab.key}
@@ -817,9 +857,13 @@
 
 //         <Table
 //           columns={columns}
-//           data={filteredData}
+//           data={paginatedData}
 //           loading={loading}
-//           emptyMessage="No companies found"
+//           emptyMessage={
+//             profileTab === "consultant"
+//               ? "No consultants found"
+//               : "No companies found"
+//           }
 //         />
 
 //         {/* Footer */}
@@ -827,12 +871,13 @@
 //           <p className="text-xs text-gray-400">
 //             Showing {filteredData.length === 0 ? 0 : (page - 1) * limit + 1}
 //             {"–"}
-//             {Math.min((page - 1) * limit + filteredData.length, total)} of{" "}
-//             {total} companies
+//             {Math.min(page * limit, filteredData.length)} of{" "}
+//             {filteredData.length}{" "}
+//             {profileTab === "consultant" ? "consultants" : "companies"}
 //           </p>
 //           <Pagination
 //             page={page}
-//             total={total}
+//             total={filteredData.length}
 //             limit={limit}
 //             onChange={setPage}
 //             onLimitChange={(newLimit) => {
@@ -857,6 +902,8 @@
 // };
 
 // export default Companies;
+
+
 
 import { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import { useNavigate } from "react-router-dom";
@@ -1547,7 +1594,7 @@ const Companies = () => {
             onClick={() => openEdit(row)}
             className="p-1.5 hover:bg-blue-50 text-blue-600 rounded-lg transition-colors"
             title="Edit"
-          >
+          > 
             <MdEdit size={16} />
           </button>
           <button

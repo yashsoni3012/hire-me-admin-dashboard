@@ -347,7 +347,7 @@ const AppRoutes = () => (
             element={<FunctionRolesForm />}
           />
 
-          <Route path="/job-categories" element={<JobCategory />} />
+          {/* <Route path="/job-categories" element={<JobCategory />} />
           <Route path="/job-categories/add" element={<JobCategoryForm />} />
           <Route
             path="/job-categories/edit/:id"
@@ -356,9 +356,9 @@ const AppRoutes = () => (
           <Route
             path="/job-categories/view/:id"
             element={<JobCategoryForm />}
-          />
+          /> */}
 
-          <Route path="/job-subcategories" element={<JobSubCategory />} />
+          {/* <Route path="/job-subcategories" element={<JobSubCategory />} />
           <Route
             path="/job-subcategories/add"
             element={<JobSubCategoryForm />}
@@ -370,7 +370,7 @@ const AppRoutes = () => (
           <Route
             path="/job-subcategories/view/:id"
             element={<JobSubCategoryForm />}
-          />
+          /> */}
 
           <Route
             path="/subscription-features"

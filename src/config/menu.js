@@ -170,10 +170,10 @@ export const menuItems = [
   { label: 'Dashboard', path: '/dashboard', icon: 'MdDashboard' },
   { label: 'Company', path: '/companies', icon: 'MdBusiness' },
   {
-    label: 'Contact',
+    label: 'Inquiry',
     icon: 'MdMarkEmailUnread',
     children: [
-      { label: 'Inquiry', path: '/contact', icon: 'MdMarkEmailUnread' },
+      { label: 'Customers', path: '/contact', icon: 'MdMarkEmailUnread' },
       { label: 'Demo Requests ', path: '/demo-requests', icon: 'MdPeople' },
     ],
   },
@@ -248,8 +248,8 @@ export const menuItems = [
       { label: 'Cms Pages', path: '/cms-pages', icon: 'MdWeb' },
       { label: 'Job Types', path: '/job-types', icon: 'MdWorkOutline' },
 
-      { label: 'Job Categories', path: '/job-categories', icon: 'MdWorkOutline' },
-      { label: 'Job Sub Categories', path: '/job-subcategories', icon: 'MdCategory' },
+      // { label: 'Job Categories', path: '/job-categories', icon: 'MdWorkOutline' },
+      // { label: 'Job Sub Categories', path: '/job-subcategories', icon: 'MdCategory' },
       { label: 'Industries', path: '/industries', icon: 'MdBusiness' },
       { label: 'Sub Industries', path: '/subindustries', icon: 'MdSubdirectoryArrowRight' },
       { label: 'Function Role Categories', path: '/function-role-categories', icon: 'MdAssignment' },

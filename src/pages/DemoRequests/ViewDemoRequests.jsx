@@ -444,131 +444,161 @@ import {
   MdArrowBack,
   MdEdit,
   MdCancel,
+  MdInfo,
+  MdHistory,
+  MdCheckCircle,
+  MdErrorOutline,
   MdPerson,
   MdEmail,
   MdPhone,
   MdBusiness,
-  MdWork,
   MdLocationOn,
   MdDateRange,
-  MdAccessTime,
-  MdMessage,
   MdAssignment,
   MdPriorityHigh,
-  MdInfo,
-  MdHistory,
-  MdCheckCircle,
+  MdTrendingUp,
+  MdWork,
+  MdDescription,
+  MdLanguage,
 } from 'react-icons/md';
 import { demoRequestService } from '../../services/demoRequest.service';
 import { showError } from '../../utils/toast';
 import { formatDate } from '../../utils/helpers';
 import { fetchUsers } from '../../utils/getUserName';
 
-// ─── Helper: Format time to 12-hour AM/PM ──────────────────
-const formatTimeTo12Hour = (value) => {
-  if (!value) return '—';
-  const parts = value.split(':');
-  if (parts.length < 2) return value;
-  const hour = parseInt(parts[0]);
-  const minutes = parts[1];
-  const hour12 = hour === 0 ? 12 : hour > 12 ? hour - 12 : hour;
-  const ampm = hour < 12 ? 'AM' : 'PM';
-  return `${hour12}:${minutes} ${ampm}`;
+// ─── Status styles ─────────────────────────────────────────────
+const STATUS_STYLES = {
+  new: {
+    pill: 'bg-blue-50 text-blue-700 ring-1 ring-blue-200',
+    icon: MdInfo,
+  },
+  contacted: {
+    pill: 'bg-amber-50 text-amber-700 ring-1 ring-amber-200',
+    icon: MdPhone,
+  },
+  scheduled: {
+    pill: 'bg-purple-50 text-purple-700 ring-1 ring-purple-200',
+    icon: MdDateRange,
+  },
+  completed: {
+    pill: 'bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200',
+    icon: MdCheckCircle,
+  },
+  converted: {
+    pill: 'bg-emerald-600 text-white ring-1 ring-emerald-700',
+    icon: MdCheckCircle,
+  },
+  cancelled: {
+    pill: 'bg-red-50 text-red-700 ring-1 ring-red-200',
+    icon: MdErrorOutline,
+  },
 };
 
-// ─── Badge components ────────────────────────────────────────
-const StatusBadge = ({ status }) => {
-  const colors = {
-    new: 'bg-blue-50 text-blue-700 ring-1 ring-blue-200',
-    contacted: 'bg-yellow-50 text-yellow-700 ring-1 ring-yellow-200',
-    scheduled: 'bg-purple-50 text-purple-700 ring-1 ring-purple-200',
-    completed: 'bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200',
-    converted: 'bg-emerald-600 text-white ring-1 ring-emerald-700',
-    cancelled: 'bg-red-50 text-red-700 ring-1 ring-red-200',
-  };
-  const labels = {
-    new: 'New',
-    contacted: 'Contacted',
-    scheduled: 'Scheduled',
-    completed: 'Completed',
-    converted: 'Converted',
-    cancelled: 'Cancelled',
-  };
-  const cls = colors[status] || 'bg-gray-100 text-gray-700 ring-1 ring-gray-200';
+const StatusPill = ({ status }) => {
+  const style = STATUS_STYLES[status] || STATUS_STYLES.new;
+  const Icon = style.icon;
   return (
-    <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold ${cls}`}>
-      {labels[status] || status || 'New'}
+    <span
+      className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold ${style.pill}`}
+    >
+      <Icon size={13} />
+      {status ? status.charAt(0).toUpperCase() + status.slice(1) : 'New'}
     </span>
   );
 };
 
-const PriorityBadge = ({ priority }) => {
-  const colors = {
-    low: 'bg-gray-100 text-gray-600 ring-1 ring-gray-200',
-    medium: 'bg-yellow-50 text-yellow-700 ring-1 ring-yellow-200',
-    high: 'bg-red-50 text-red-700 ring-1 ring-red-200',
-  };
-  const cls = colors[priority] || colors.medium;
+// ─── Priority styles ──────────────────────────────────────────
+const PRIORITY_STYLES = {
+  low: 'bg-slate-100 text-slate-600 ring-1 ring-slate-200',
+  medium: 'bg-blue-50 text-blue-700 ring-1 ring-blue-200',
+  high: 'bg-red-50 text-red-700 ring-1 ring-red-200',
+};
+
+const PriorityPill = ({ priority }) => {
+  const cls = PRIORITY_STYLES[priority] || PRIORITY_STYLES.medium;
   return (
-    <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold ${cls}`}>
-      <MdPriorityHigh size={13} />
-      {priority || 'Medium'}
+    <span
+      className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold ${cls}`}
+    >
+      <MdPriorityHigh size={12} />
+      {priority ? priority.charAt(0).toUpperCase() + priority.slice(1) : 'Medium'}
     </span>
   );
 };
 
-const SourceBadge = ({ source }) => {
-  const colors = {
-    Website: 'bg-blue-50 text-blue-700 ring-1 ring-blue-200',
-    Google: 'bg-red-50 text-red-700 ring-1 ring-red-200',
-    LinkedIn: 'bg-blue-600 text-white ring-1 ring-blue-700',
-    friends: 'bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200',
-    socialmedia: 'bg-purple-50 text-purple-700 ring-1 ring-purple-200',
-    others: 'bg-gray-100 text-gray-700 ring-1 ring-gray-200',
-  };
-  const cls = colors[source] || colors.others;
+// ─── Source styles ────────────────────────────────────────────
+const SOURCE_STYLES = {
+  Website: 'bg-blue-50 text-blue-700 ring-1 ring-blue-200',
+  Google: 'bg-red-50 text-red-700 ring-1 ring-red-200',
+  LinkedIn: 'bg-blue-600 text-white ring-1 ring-blue-700',
+  friends: 'bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200',
+  socialmedia: 'bg-purple-50 text-purple-700 ring-1 ring-purple-200',
+  others: 'bg-slate-100 text-slate-600 ring-1 ring-slate-200',
+};
+
+const SourcePill = ({ source }) => {
+  if (!source || source === '—') {
+    return <span className="text-sm text-slate-400">—</span>;
+  }
+  const cls = SOURCE_STYLES[source] || SOURCE_STYLES.others;
   return (
-    <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold ${cls}`}>
-      {source || '—'}
+    <span
+      className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold ${cls}`}
+    >
+      <MdLanguage size={12} />
+      {source}
     </span>
   );
 };
 
-const HiringFrequencyBadge = ({ frequency }) => {
-  const colors = {
-    occasional: 'bg-gray-100 text-gray-600 ring-1 ring-gray-200',
-    monthly: 'bg-blue-50 text-blue-700 ring-1 ring-blue-200',
-    quarterly: 'bg-yellow-50 text-yellow-700 ring-1 ring-yellow-200',
-    frequent: 'bg-red-50 text-red-700 ring-1 ring-red-200',
-  };
-  const labels = {
-    occasional: 'Occasional',
-    monthly: 'Monthly',
-    quarterly: 'Quarterly',
-    frequent: 'Frequent',
-  };
-  const cls = colors[frequency] || colors.occasional;
+// ─── Hiring frequency styles ──────────────────────────────────
+const HIRING_FREQ_STYLES = {
+  occasional: 'bg-slate-100 text-slate-600 ring-1 ring-slate-200',
+  monthly: 'bg-blue-50 text-blue-700 ring-1 ring-blue-200',
+  quarterly: 'bg-amber-50 text-amber-700 ring-1 ring-amber-200',
+  frequent: 'bg-red-50 text-red-700 ring-1 ring-red-200',
+};
+
+const HIRING_FREQ_LABELS = {
+  occasional: 'Occasional',
+  monthly: 'Monthly',
+  quarterly: 'Quarterly',
+  frequent: 'Frequent',
+};
+
+const HiringFrequencyPill = ({ frequency }) => {
+  if (!frequency || frequency === '—') {
+    return <span className="text-sm text-slate-400">—</span>;
+  }
+  const cls = HIRING_FREQ_STYLES[frequency] || HIRING_FREQ_STYLES.occasional;
   return (
-    <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold ${cls}`}>
-      {labels[frequency] || frequency || '—'}
+    <span
+      className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold ${cls}`}
+    >
+      {HIRING_FREQ_LABELS[frequency] || frequency}
     </span>
   );
 };
 
 // ─── Shared small pieces ─────────────────────────────────────
 const FieldLabel = ({ children }) => (
-  <label className="block text-[13px] font-medium text-slate-600 mb-1.5">{children}</label>
+  <label className="block text-[13px] font-medium text-slate-600 mb-1.5">
+    {children}
+  </label>
 );
 
 const ReadOnlyValue = ({ children }) => (
-  <div className="text-sm text-slate-700 py-2 px-3 bg-slate-50 rounded-lg border border-slate-200">
-    {children || '—'}
+  <div className="text-sm text-slate-700 py-2 px-3 bg-slate-50 rounded-lg border border-slate-200 break-words">
+    {children !== '' && children !== null && children !== undefined ? children : '—'}
   </div>
 );
 
 // ─── Tabs ──────────────────────────────────────────────────────
 const TABS = [
-  { id: 'overview', label: 'Overview', icon: MdInfo },
+  { id: 'overview', label: 'Overview', icon: MdPerson },
+  { id: 'company', label: 'Company', icon: MdBusiness },
+  { id: 'demo', label: 'Demo Details', icon: MdDateRange },
+  { id: 'assignment', label: 'Assignment', icon: MdAssignment },
   { id: 'activity', label: 'Activity', icon: MdHistory },
 ];
 
@@ -578,8 +608,7 @@ const ViewDemoRequest = () => {
   const { id } = useParams();
 
   const [loading, setLoading] = useState(true);
-  const [data, setData] = useState(null);
-  const [formData, setFormData] = useState(null);
+  const [demoData, setDemoData] = useState(null);
   const [userNameCache, setUserNameCache] = useState({});
   const [activeTab, setActiveTab] = useState('overview');
 
@@ -588,7 +617,6 @@ const ViewDemoRequest = () => {
     if (!userId) return '—';
     const userIdStr = String(userId);
     if (userNameCache[userIdStr]) return userNameCache[userIdStr];
-    // Try other key formats
     const keys = Object.keys(userNameCache);
     for (const key of keys) {
       if (String(key) === String(userId)) {
@@ -598,68 +626,87 @@ const ViewDemoRequest = () => {
     return `User ${userId}`;
   };
 
-  // Fetch demo request data
+  // Helper: 24-hour time → 12-hour AM/PM
+  const formatTimeTo12Hour = (value) => {
+    if (!value) return '—';
+    const parts = value.split(':');
+    if (parts.length < 2) return value;
+    const hour = parseInt(parts[0]);
+    const minutes = parts[1];
+    const hour12 = hour === 0 ? 12 : hour > 12 ? hour - 12 : hour;
+    const ampm = hour < 12 ? 'AM' : 'PM';
+    return `${hour12}:${minutes} ${ampm}`;
+  };
+
+  // ─── Fetch demo request data ──────────────────────────────
   useEffect(() => {
     const fetchDemoRequest = async () => {
       setLoading(true);
       try {
-        // ─── Fetch users for name mapping ──────────────────────────
         const users = await fetchUsers();
         const userMap = {};
-        Object.keys(users).forEach((id) => {
-          userMap[String(id)] = users[id].name;
+        Object.keys(users || {}).forEach((uid) => {
+          userMap[String(uid)] = users[uid]?.name ?? users[uid];
         });
         setUserNameCache(userMap);
 
         const response = await demoRequestService.getById(id);
-        const rawData = response?.data || response;
+        const data = response?.data || response;
 
-        if (rawData && rawData.id) {
+        if (data && data.id) {
           // Get assigned user name
           let assignedUserName = '—';
-          if (rawData.assigned_to) {
-            const userId = String(rawData.assigned_to);
-            assignedUserName = userMap[userId] || `User ${rawData.assigned_to}`;
+          if (data.assigned_to) {
+            const userId = String(data.assigned_to);
+            assignedUserName = userMap[userId] || `User ${data.assigned_to}`;
           }
 
-          const formatted = {
-            name: rawData.name || '—',
-            email: rawData.email || '—',
-            mobile: rawData.mobile || '—',
-            company_name: rawData.company_name || '—',
-            designation: rawData.designation || '—',
-            company_size: rawData.companySize?.name || '—',
-            industry: rawData.industry?.name || '—',
-            city: rawData.city?.name || '—',
-            job_hiring_volume: rawData.job_hiring_volume || '—',
-            hiring_frequency: rawData.hiring_frequency || '—',
-            interested_plan: rawData.interested_plan || '—',
-            preferred_demo_date: rawData.preferred_demo_date
-              ? formatDate(rawData.preferred_demo_date)
+          // Get updated by name
+          let updatedByName = '—';
+          if (data.updated_by) {
+            const uid = String(data.updated_by);
+            updatedByName =
+              data.updatedBy?.name || userMap[uid] || `User ${data.updated_by}`;
+          }
+
+          setDemoData({
+            id: data.id,
+            name: data.name || '—',
+            email: data.email || '—',
+            mobile: data.mobile || '—',
+            company_name: data.company_name || '—',
+            designation: data.designation || '—',
+            company_size: data.companySize?.name || '—',
+            industry: data.industry?.name || '—',
+            city: data.city?.name || '—',
+            job_hiring_volume: data.job_hiring_volume || '—',
+            hiring_frequency: data.hiring_frequency || '—',
+            interested_plan: data.interested_plan || '—',
+            preferred_demo_date: data.preferred_demo_date
+              ? formatDate(data.preferred_demo_date)
               : '—',
-            preferred_demo_time: rawData.preferred_demo_time || '—',
-            message: rawData.message || '—',
-            source: rawData.source || '—',
+            preferred_demo_time: data.preferred_demo_time || '—',
+            message: data.message || '—',
+            source: data.source || '—',
             assigned_to: assignedUserName,
-            status: rawData.status || 'new',
-            priority: rawData.priority || 'medium',
-            admin_remarks: rawData.admin_remarks || '—',
-            demo_scheduled_at: rawData.demo_scheduled_at
-              ? formatDate(rawData.demo_scheduled_at)
+            assigned_to_id: data.assigned_to || null,
+            status: data.status || 'new',
+            priority: data.priority || 'medium',
+            admin_remarks: data.admin_remarks || '—',
+            demo_scheduled_at: data.demo_scheduled_at
+              ? formatDate(data.demo_scheduled_at)
               : '—',
-            demo_completed_at: rawData.demo_completed_at
-              ? formatDate(rawData.demo_completed_at)
+            demo_completed_at: data.demo_completed_at
+              ? formatDate(data.demo_completed_at)
               : '—',
-            follow_up_at: rawData.follow_up_at
-              ? formatDate(rawData.follow_up_at)
+            follow_up_at: data.follow_up_at
+              ? formatDate(data.follow_up_at)
               : '—',
-            created_by: rawData.created_by || '—',
-            updated_by: rawData.updated_by || '—',
-            created_at: rawData.created_at || rawData.createdAt || null,
-            updated_at: rawData.updated_at || rawData.updatedAt || null,
-          };
-          setData(rawData);
-          setFormData(formatted);
+            updated_by: updatedByName,
+            updated_by_id: data.updated_by || null,
+            created_at: data.created_at || data.createdAt || null,
+            updated_at: data.updated_at || data.updatedAt || null,
+          });
         } else {
           showError('Demo request not found');
           navigate('/demo-requests');
@@ -682,245 +729,7 @@ const ViewDemoRequest = () => {
     navigate(`/demo-requests/edit/${id}`);
   };
 
-  const handleBack = () => {
-    navigate('/demo-requests');
-  };
-
-  // ─── Compute hero data ────────────────────────────────────
-  const demoName = formData?.name || 'Demo Request';
-  const company = formData?.company_name || '—';
-  const email = formData?.email || '—';
-  const mobile = formData?.mobile || '—';
-  const status = formData?.status || 'new';
-  const priority = formData?.priority || 'medium';
-  const source = formData?.source || '—';
-  const assignedTo = formData?.assigned_to || 'Unassigned';
-  const preferredDate = formData?.preferred_demo_date || '—';
-  const preferredTime = formData?.preferred_demo_time || '—';
-
-  const initials = demoName
-    .split(' ')
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((w) => w[0]?.toUpperCase())
-    .join('');
-
-  // ─── Render tab content ──────────────────────────────────
-  const renderTabContent = () => {
-    switch (activeTab) {
-      case 'overview':
-        return (
-          <div className="space-y-6">
-            {/* ─── Contact & Company Info ──────────────────────────── */}
-            <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-              <div className="px-6 py-4 border-b border-slate-100 bg-slate-50/50">
-                <h2 className="text-sm font-semibold text-slate-700 uppercase tracking-wider flex items-center gap-2">
-                  <MdPerson size={16} />
-                  Contact & Company Details
-                </h2>
-              </div>
-              <div className="p-6 space-y-4">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                  <div>
-                    <FieldLabel>Full Name</FieldLabel>
-                    <ReadOnlyValue>
-                      <span className="font-medium text-slate-800">{formData?.name}</span>
-                    </ReadOnlyValue>
-                  </div>
-                  <div>
-                    <FieldLabel>Email Address</FieldLabel>
-                    <ReadOnlyValue>
-                      <a href={`mailto:${email}`} className="text-blue-600 hover:underline">
-                        {email}
-                      </a>
-                    </ReadOnlyValue>
-                  </div>
-                  <div>
-                    <FieldLabel>Mobile Number</FieldLabel>
-                    <ReadOnlyValue>
-                      <a href={`tel:${mobile}`} className="hover:text-blue-600">
-                        {mobile}
-                      </a>
-                    </ReadOnlyValue>
-                  </div>
-                  <div>
-                    <FieldLabel>Company Name</FieldLabel>
-                    <ReadOnlyValue>
-                      <span className="font-medium text-slate-800">{company}</span>
-                    </ReadOnlyValue>
-                  </div>
-                  <div>
-                    <FieldLabel>Designation</FieldLabel>
-                    <ReadOnlyValue>{formData?.designation || '—'}</ReadOnlyValue>
-                  </div>
-                  <div>
-                    <FieldLabel>Company Size</FieldLabel>
-                    <ReadOnlyValue>{formData?.company_size}</ReadOnlyValue>
-                  </div>
-                  <div>
-                    <FieldLabel>Industry</FieldLabel>
-                    <ReadOnlyValue>{formData?.industry}</ReadOnlyValue>
-                  </div>
-                  <div>
-                    <FieldLabel>City</FieldLabel>
-                    <ReadOnlyValue>{formData?.city}</ReadOnlyValue>
-                  </div>
-                  <div>
-                    <FieldLabel>Expected Hiring Volume</FieldLabel>
-                    <ReadOnlyValue>{formData?.job_hiring_volume}</ReadOnlyValue>
-                  </div>
-                  <div>
-                    <FieldLabel>Hiring Frequency</FieldLabel>
-                    <ReadOnlyValue>
-                      <HiringFrequencyBadge frequency={formData?.hiring_frequency} />
-                    </ReadOnlyValue>
-                  </div>
-                  <div>
-                    <FieldLabel>Interested Plan</FieldLabel>
-                    <ReadOnlyValue>{formData?.interested_plan}</ReadOnlyValue>
-                  </div>
-                  <div>
-                    <FieldLabel>Source</FieldLabel>
-                    <ReadOnlyValue>
-                      <SourceBadge source={formData?.source} />
-                    </ReadOnlyValue>
-                  </div>
-                  <div>
-                    <FieldLabel>Preferred Demo Date</FieldLabel>
-                    <ReadOnlyValue>{preferredDate}</ReadOnlyValue>
-                  </div>
-                  <div>
-                    <FieldLabel>Preferred Demo Time</FieldLabel>
-                    <ReadOnlyValue>{formatTimeTo12Hour(preferredTime)}</ReadOnlyValue>
-                  </div>
-                </div>
-                <div>
-                  <FieldLabel>Message / Requirements</FieldLabel>
-                  <div className="text-sm text-slate-700 whitespace-pre-wrap bg-slate-50 p-4 rounded-lg border border-slate-200">
-                    {formData?.message || '—'}
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* ─── Admin Details ────────────────────────────────────── */}
-            <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-              <div className="px-6 py-4 border-b border-slate-100 bg-slate-50/50">
-                <h2 className="text-sm font-semibold text-slate-700 uppercase tracking-wider flex items-center gap-2">
-                  <MdAssignment size={16} />
-                  Admin Details
-                </h2>
-              </div>
-              <div className="p-6 space-y-4">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                  <div>
-                    <FieldLabel>Status</FieldLabel>
-                    <ReadOnlyValue>
-                      <StatusBadge status={status} />
-                    </ReadOnlyValue>
-                  </div>
-                  <div>
-                    <FieldLabel>Priority</FieldLabel>
-                    <ReadOnlyValue>
-                      <PriorityBadge priority={priority} />
-                    </ReadOnlyValue>
-                  </div>
-                  <div>
-                    <FieldLabel>Assigned To</FieldLabel>
-                    <ReadOnlyValue>
-                      <span className="font-medium text-slate-700">{assignedTo}</span>
-                    </ReadOnlyValue>
-                  </div>
-                  <div>
-                    <FieldLabel>Demo Scheduled At</FieldLabel>
-                    <ReadOnlyValue>{formData?.demo_scheduled_at}</ReadOnlyValue>
-                  </div>
-                  <div>
-                    <FieldLabel>Demo Completed At</FieldLabel>
-                    <ReadOnlyValue>{formData?.demo_completed_at}</ReadOnlyValue>
-                  </div>
-                  <div>
-                    <FieldLabel>Follow-up Date</FieldLabel>
-                    <ReadOnlyValue>{formData?.follow_up_at}</ReadOnlyValue>
-                  </div>
-                </div>
-                <div>
-                  <FieldLabel>Admin Remarks</FieldLabel>
-                  <div className="text-sm text-slate-700 whitespace-pre-wrap bg-purple-50 p-4 rounded-lg border border-purple-100">
-                    {formData?.admin_remarks || '—'}
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        );
-
-      case 'activity':
-        return (
-          <div className="space-y-6 max-w-2xl">
-            <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-              <div className="px-6 py-4 border-b border-slate-100 bg-slate-50/50">
-                <h2 className="text-sm font-semibold text-slate-700 uppercase tracking-wider flex items-center gap-2">
-                  <MdAccessTime size={16} />
-                  Timeline
-                </h2>
-              </div>
-              <div className="p-6 space-y-6">
-                <div>
-                  <FieldLabel>Created By</FieldLabel>
-                  <ReadOnlyValue>
-                    {data?.created_by
-                      ? getUserNameCached(data.created_by)
-                      : '—'}
-                  </ReadOnlyValue>
-                </div>
-                <div>
-                  <FieldLabel>Created At</FieldLabel>
-                  <ReadOnlyValue>
-                    {data?.created_at ? formatDate(data.created_at) : '—'}
-                  </ReadOnlyValue>
-                </div>
-                <div>
-                  <FieldLabel>Last Updated By</FieldLabel>
-                  <ReadOnlyValue>
-                    {data?.updated_by
-                      ? getUserNameCached(data.updated_by)
-                      : '—'}
-                  </ReadOnlyValue>
-                </div>
-                <div>
-                  <FieldLabel>Last Updated At</FieldLabel>
-                  <ReadOnlyValue>
-                    {data?.updated_at ? formatDate(data.updated_at) : '—'}
-                  </ReadOnlyValue>
-                </div>
-                {data?.demo_scheduled_at && (
-                  <div>
-                    <FieldLabel>Demo Scheduled At</FieldLabel>
-                    <div className="text-sm text-purple-700 py-2 px-3 bg-purple-50 rounded-lg border border-purple-200 flex items-center gap-2">
-                      <MdDateRange size={16} className="text-purple-500" />
-                      {formatDate(data.demo_scheduled_at)}
-                    </div>
-                  </div>
-                )}
-                {data?.demo_completed_at && (
-                  <div>
-                    <FieldLabel>Demo Completed At</FieldLabel>
-                    <div className="text-sm text-emerald-700 py-2 px-3 bg-emerald-50 rounded-lg border border-emerald-200 flex items-center gap-2">
-                      <MdCheckCircle size={16} className="text-emerald-500" />
-                      {formatDate(data.demo_completed_at)}
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-        );
-
-      default:
-        return null;
-    }
-  };
+  const handleBack = () => navigate('/demo-requests');
 
   // ─── Loading state ─────────────────────────────────────────
   if (loading) {
@@ -934,14 +743,235 @@ const ViewDemoRequest = () => {
     );
   }
 
-  if (!formData) {
+  if (!demoData) {
     return null;
   }
 
+  // ─── Compute hero data ────────────────────────────────────
+  const contactName = demoData.name || 'Demo Request';
+  const company = demoData.company_name || '—';
+  const email = demoData.email || '—';
+  const mobile = demoData.mobile || '—';
+  const status = demoData.status || 'new';
+  const priority = demoData.priority || 'medium';
+  const source = demoData.source || '—';
+  const assignedTo = demoData.assigned_to || 'Unassigned';
+  const preferredDate = demoData.preferred_demo_date || '—';
+  const preferredTime = demoData.preferred_demo_time || '—';
+  const createdDate = demoData.created_at ? formatDate(demoData.created_at) : '—';
+  const updatedDate = demoData.updated_at ? formatDate(demoData.updated_at) : '—';
+
+  const initials = contactName
+    .split(' ')
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((w) => w[0]?.toUpperCase())
+    .join('');
+
+  // ─── Render tab content ──────────────────────────────────
+  const renderTabContent = () => {
+    switch (activeTab) {
+      case 'overview':
+        return (
+          <div className="space-y-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+              <div>
+                <FieldLabel>Full Name</FieldLabel>
+                <ReadOnlyValue>
+                  <span className="font-medium text-slate-800">{demoData.name}</span>
+                </ReadOnlyValue>
+              </div>
+              <div>
+                <FieldLabel>Email Address</FieldLabel>
+                <ReadOnlyValue>
+                  {demoData.email !== '—' ? (
+                    <a
+                      href={`mailto:${email}`}
+                      className="text-blue-600 hover:underline"
+                    >
+                      {email}
+                    </a>
+                  ) : (
+                    '—'
+                  )}
+                </ReadOnlyValue>
+              </div>
+              <div>
+                <FieldLabel>Mobile Number</FieldLabel>
+                <ReadOnlyValue>
+                  {demoData.mobile !== '—' ? (
+                    <a href={`tel:${mobile}`} className="hover:text-blue-600">
+                      {mobile}
+                    </a>
+                  ) : (
+                    '—'
+                  )}
+                </ReadOnlyValue>
+              </div>
+              <div>
+                <FieldLabel>Designation</FieldLabel>
+                <ReadOnlyValue>{demoData.designation}</ReadOnlyValue>
+              </div>
+              <div className="sm:col-span-2">
+                <FieldLabel>Message / Requirements</FieldLabel>
+                <div className="text-sm text-slate-700 leading-relaxed whitespace-pre-wrap bg-slate-50 p-4 rounded-lg border border-slate-200">
+                  {demoData.message || '—'}
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+
+      case 'company':
+        return (
+          <div className="space-y-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+              <div className="sm:col-span-2">
+                <FieldLabel>Company Name</FieldLabel>
+                <ReadOnlyValue>
+                  <span className="font-medium text-lg">{demoData.company_name}</span>
+                </ReadOnlyValue>
+              </div>
+              <div>
+                <FieldLabel>Company Size</FieldLabel>
+                <ReadOnlyValue>{demoData.company_size}</ReadOnlyValue>
+              </div>
+              <div>
+                <FieldLabel>Industry</FieldLabel>
+                <ReadOnlyValue>{demoData.industry}</ReadOnlyValue>
+              </div>
+              <div>
+                <FieldLabel>City</FieldLabel>
+                <ReadOnlyValue>
+                  <span className="inline-flex items-center gap-1.5">
+                    <MdLocationOn size={14} className="text-slate-400" />
+                    {demoData.city}
+                  </span>
+                </ReadOnlyValue>
+              </div>
+              <div>
+                <FieldLabel>Expected Hiring Volume</FieldLabel>
+                <ReadOnlyValue>{demoData.job_hiring_volume}</ReadOnlyValue>
+              </div>
+              <div>
+                <FieldLabel>Hiring Frequency</FieldLabel>
+                <ReadOnlyValue>
+                  <HiringFrequencyPill frequency={demoData.hiring_frequency} />
+                </ReadOnlyValue>
+              </div>
+              <div>
+                <FieldLabel>Interested Plan</FieldLabel>
+                <ReadOnlyValue>{demoData.interested_plan}</ReadOnlyValue>
+              </div>
+              <div>
+                <FieldLabel>Source</FieldLabel>
+                <ReadOnlyValue>
+                  <SourcePill source={demoData.source} />
+                </ReadOnlyValue>
+              </div>
+            </div>
+          </div>
+        );
+
+      case 'demo':
+        return (
+          <div className="space-y-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+              <div>
+                <FieldLabel>Preferred Demo Date</FieldLabel>
+                <ReadOnlyValue>{demoData.preferred_demo_date}</ReadOnlyValue>
+              </div>
+              <div>
+                <FieldLabel>Preferred Demo Time</FieldLabel>
+                <ReadOnlyValue>
+                  {formatTimeTo12Hour(demoData.preferred_demo_time)}
+                </ReadOnlyValue>
+              </div>
+              <div>
+                <FieldLabel>Demo Scheduled At</FieldLabel>
+                <ReadOnlyValue>{demoData.demo_scheduled_at}</ReadOnlyValue>
+              </div>
+              <div>
+                <FieldLabel>Demo Completed At</FieldLabel>
+                <ReadOnlyValue>{demoData.demo_completed_at}</ReadOnlyValue>
+              </div>
+              <div>
+                <FieldLabel>Follow-up Date</FieldLabel>
+                <ReadOnlyValue>{demoData.follow_up_at}</ReadOnlyValue>
+              </div>
+            </div>
+          </div>
+        );
+
+      case 'assignment':
+        return (
+          <div className="space-y-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+              <div>
+                <FieldLabel>Status</FieldLabel>
+                <ReadOnlyValue>
+                  <StatusPill status={status} />
+                </ReadOnlyValue>
+              </div>
+              <div>
+                <FieldLabel>Priority</FieldLabel>
+                <ReadOnlyValue>
+                  <PriorityPill priority={priority} />
+                </ReadOnlyValue>
+              </div>
+              <div>
+                <FieldLabel>Assigned To</FieldLabel>
+                <ReadOnlyValue>
+                  <span className="font-medium text-slate-700">{assignedTo}</span>
+                </ReadOnlyValue>
+              </div>
+              <div className="sm:col-span-2">
+                <FieldLabel>Admin Remarks</FieldLabel>
+                <div className="text-sm text-slate-700 whitespace-pre-wrap bg-purple-50 p-4 rounded-lg border border-purple-100">
+                  {demoData.admin_remarks || '—'}
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+
+      case 'activity':
+        return (
+          <div className="space-y-6 max-w-2xl">
+            <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+              <div className="px-6 py-4 border-b border-slate-100 bg-slate-50/50">
+                <h2 className="text-sm font-semibold text-slate-700 uppercase tracking-wider flex items-center gap-2">
+                  <MdHistory size={16} />
+                  Audit Information
+                </h2>
+              </div>
+              <div className="p-6 space-y-5">
+                <div>
+                  <FieldLabel>Created At</FieldLabel>
+                  <ReadOnlyValue>{createdDate}</ReadOnlyValue>
+                </div>
+                <div>
+                  <FieldLabel>Last Updated By</FieldLabel>
+                  <ReadOnlyValue>{demoData.updated_by}</ReadOnlyValue>
+                </div>
+                <div>
+                  <FieldLabel>Last Updated At</FieldLabel>
+                  <ReadOnlyValue>{updatedDate}</ReadOnlyValue>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+
+      default:
+        return null;
+    }
+  };
+
   // ─── Main render ──────────────────────────────────────────
   return (
-    <div className="min-h-screen pb-16">
-      {/* ─── Sticky action bar ─────────────────────────────────── */}
+    <div className="min-h-screen pb-16 bg-[#F4F5FA]">
+      {/* ─── Sticky action bar (light) ───────────────────────── */}
       <div className="bg-white/85 backdrop-blur-md border-b border-slate-200 sticky top-0 z-10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between gap-4">
           <div className="flex items-center gap-3 min-w-0">
@@ -955,7 +985,7 @@ const ViewDemoRequest = () => {
             <div className="min-w-0">
               <p className="text-[11px] text-slate-400 leading-tight">Demo Requests</p>
               <p className="text-sm font-semibold text-slate-800 truncate leading-tight max-w-[45vw]">
-                {demoName}
+                {contactName}
               </p>
             </div>
           </div>
@@ -974,58 +1004,62 @@ const ViewDemoRequest = () => {
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 pt-6">
-        {/* ─── Hero ───────────────────────────────────────────────── */}
+        {/* ─── Hero (fixed dark gradient) ─────────────────── */}
         <motion.div
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.35, ease: 'easeOut' }}
           className="relative rounded-2xl overflow-hidden shadow-lg shadow-slate-900/5"
         >
-          <div className="relative h-44 sm:h-52">
-            <div className="w-full h-full bg-gradient-to-br from-slate-900 via-blue-900 to-indigo-800" />
-            <div className="absolute inset-0 bg-gradient-to-t from-slate-900/95 via-slate-900/50 to-slate-900/10" />
+          <div className="relative h-44 sm:h-52 bg-gradient-to-br from-slate-950 via-indigo-950 to-purple-950">
+            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/30 to-transparent" />
+            <div className="absolute inset-0 opacity-10">
+              <div className="absolute top-0 right-0 w-64 h-64 bg-white rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
+              <div className="absolute bottom-0 left-0 w-48 h-48 bg-white rounded-full blur-3xl translate-y-1/2 -translate-x-1/2" />
+            </div>
           </div>
 
           <div className="absolute inset-x-0 bottom-0 px-5 sm:px-7 pb-5 pt-3">
             <div className="flex flex-col sm:flex-row sm:items-end gap-4">
-              {/* Avatar placeholder */}
-              <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-white p-1.5 shadow-xl flex-shrink-0">
-                <div className="w-full h-full rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white font-bold text-lg">
-                  {initials || <MdPerson size={22} />}
+              <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-white/10 backdrop-blur-sm p-1.5 shadow-xl flex-shrink-0 border border-white/10">
+                <div className="w-full h-full rounded-xl bg-gradient-to-br from-blue-400 to-indigo-500 flex items-center justify-center text-white font-bold text-lg">
+                  {initials || <MdPerson size={24} />}
                 </div>
               </div>
 
-              {/* Name + chips */}
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 flex-wrap">
                   <h1 className="text-xl sm:text-2xl font-bold text-white truncate max-w-full">
-                    {demoName}
+                    {contactName}
                   </h1>
-                  <StatusBadge status={status} />
-                  <PriorityBadge priority={priority} />
-                  <SourceBadge source={source} />
+                  <StatusPill status={status} />
+                  <PriorityPill priority={priority} />
                 </div>
                 <div className="mt-2 flex items-center gap-2 flex-wrap">
-                  <span className="text-xs text-white/70">{company}</span>
+                  <span className="text-xs text-white/70 flex items-center gap-1">
+                    <MdBusiness size={12} /> {company}
+                  </span>
                   <span className="text-xs text-white/70">•</span>
                   <span className="text-xs text-white/70 flex items-center gap-1">
                     <MdEmail size={12} /> {email}
                   </span>
                   <span className="text-xs text-white/70">•</span>
                   <span className="text-xs text-white/70 flex items-center gap-1">
-                    <MdPhone size={12} /> {mobile}
-                  </span>
-                  <span className="text-xs text-white/70">•</span>
-                  <span className="text-xs text-white/70 flex items-center gap-1">
                     <MdAssignment size={12} /> {assignedTo}
                   </span>
+                  {demoData.created_at && (
+                    <>
+                      <span className="text-xs text-white/70">•</span>
+                      <span className="text-xs text-white/70">Created: {createdDate}</span>
+                    </>
+                  )}
                 </div>
               </div>
             </div>
           </div>
         </motion.div>
 
-        {/* ─── Quick stat strip ──────────────────────────────────── */}
+        {/* ─── Quick stat strip ─────────────────────────────── */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-4">
           <div className="flex items-center gap-2.5 rounded-xl bg-white/80 backdrop-blur-sm px-3.5 py-2.5 border border-slate-200 shadow-sm">
             <MdInfo size={16} className="text-slate-400 flex-shrink-0" />
@@ -1040,14 +1074,18 @@ const ViewDemoRequest = () => {
             <MdPriorityHigh size={16} className="text-slate-400 flex-shrink-0" />
             <div className="min-w-0">
               <p className="text-[10px] text-slate-500 leading-tight">Priority</p>
-              <p className="text-sm font-semibold text-slate-700 truncate capitalize">{priority}</p>
+              <p className="text-sm font-semibold text-slate-700 truncate capitalize">
+                {priority}
+              </p>
             </div>
           </div>
           <div className="flex items-center gap-2.5 rounded-xl bg-white/80 backdrop-blur-sm px-3.5 py-2.5 border border-slate-200 shadow-sm">
-            <MdAssignment size={16} className="text-slate-400 flex-shrink-0" />
+            <MdWork size={16} className="text-slate-400 flex-shrink-0" />
             <div className="min-w-0">
-              <p className="text-[10px] text-slate-500 leading-tight">Assigned To</p>
-              <p className="text-sm font-semibold text-slate-700 truncate">{assignedTo}</p>
+              <p className="text-[10px] text-slate-500 leading-tight">Hiring Volume</p>
+              <p className="text-sm font-semibold text-slate-700 truncate">
+                {demoData.job_hiring_volume}
+              </p>
             </div>
           </div>
           <div className="flex items-center gap-2.5 rounded-xl bg-white/80 backdrop-blur-sm px-3.5 py-2.5 border border-slate-200 shadow-sm">
@@ -1055,13 +1093,13 @@ const ViewDemoRequest = () => {
             <div className="min-w-0">
               <p className="text-[10px] text-slate-500 leading-tight">Preferred Demo</p>
               <p className="text-sm font-semibold text-slate-700 truncate">
-                {preferredDate} {preferredTime !== '—' ? formatTimeTo12Hour(preferredTime) : ''}
+                {preferredDate}
               </p>
             </div>
           </div>
         </div>
 
-        {/* ─── Tabs ───────────────────────────────────────────────── */}
+        {/* ─── Tabs ─────────────────────────────────────────── */}
         <div className="mt-6 bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
           <div className="flex overflow-x-auto border-b border-slate-200 px-2">
             {TABS.map((tab) => {
@@ -1080,7 +1118,7 @@ const ViewDemoRequest = () => {
                   {tab.label}
                   {active && (
                     <motion.span
-                      layoutId="demo-view-tab-underline"
+                      layoutId="view-demo-request-tab-underline"
                       className="absolute left-2 right-2 -bottom-px h-0.5 bg-blue-600 rounded-full"
                       transition={{ type: 'spring', stiffness: 500, damping: 35 }}
                     />
@@ -1112,7 +1150,7 @@ const ViewDemoRequest = () => {
           className="sm:hidden mt-4 w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-600 text-sm font-medium rounded-lg transition-colors"
         >
           <MdCancel size={16} />
-          Back to Requests
+          Back to Demo Requests
         </button>
       </div>
     </div>

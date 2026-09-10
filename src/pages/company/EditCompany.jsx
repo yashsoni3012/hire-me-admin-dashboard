@@ -1,6 +1,34 @@
+
 // import React, { useState, useEffect, useMemo } from "react";
 // import { useNavigate, useParams } from "react-router-dom";
-// import { MdArrowBack, MdSave, MdCancel } from "react-icons/md";
+// import { motion, AnimatePresence } from "framer-motion";
+// import {
+//   MdArrowBack,
+//   MdSave,
+//   MdCancel,
+//   MdDelete,
+//   MdWarning,
+//   MdClose,
+//   MdLanguage,
+//   MdCalendarToday,
+//   MdCategory,
+//   MdGroups,
+//   MdReceiptLong,
+//   MdDescription,
+//   MdImage,
+//   MdHistory,
+//   MdApartment,
+//   MdPerson,
+//   MdCreditCard,
+//   MdPermIdentity,
+//   MdOpenInNew,
+//   MdCloudUpload,
+//   MdWhatshot,
+//   MdCheckCircle,
+//   MdErrorOutline,
+//   MdPauseCircle,
+//   MdBlock,
+// } from "react-icons/md";
 // import companyService from "../../services/company.service";
 // import subIndustryService from "../../services/subIndustry.service";
 // import { useAuth } from "../../context/AuthContext";
@@ -54,32 +82,135 @@
 //   { value: "pending", label: "Pending" },
 // ];
 
-// // ─── Status badge helper ─────────────────────────────────────
-// const statusBadge = (status) => {
-//   const base =
-//     "inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium";
-//   const map = {
-//     active: "bg-green-50 text-green-700",
-//     pending: "bg-amber-50 text-amber-700",
-//     blocked: "bg-red-50 text-red-700",
-//     inactive: "bg-gray-100 text-gray-500",
-//   };
-//   const dotColor = {
-//     active: "bg-green-500",
-//     pending: "bg-amber-500",
-//     blocked: "bg-red-500",
-//     inactive: "bg-gray-400",
-//   };
-//   const cls = map[status] || map.inactive;
+// const STATUS_STYLES = {
+//   active: {
+//     pill: "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200",
+//     dot: "bg-emerald-500",
+//     icon: MdCheckCircle,
+//     heroDot: "bg-emerald-400",
+//   },
+//   pending: {
+//     pill: "bg-amber-50 text-amber-700 ring-1 ring-amber-200",
+//     dot: "bg-amber-500",
+//     icon: MdPauseCircle,
+//     heroDot: "bg-amber-400",
+//   },
+//   blocked: {
+//     pill: "bg-red-50 text-red-700 ring-1 ring-red-200",
+//     dot: "bg-red-500",
+//     icon: MdBlock,
+//     heroDot: "bg-red-400",
+//   },
+//   inactive: {
+//     pill: "bg-slate-100 text-slate-500 ring-1 ring-slate-200",
+//     dot: "bg-slate-400",
+//     icon: MdErrorOutline,
+//     heroDot: "bg-slate-400",
+//   },
+// };
+
+// const StatusPill = ({ status }) => {
+//   const style = STATUS_STYLES[status] || STATUS_STYLES.inactive;
+//   const Icon = style.icon;
 //   return (
-//     <span className={cls}>
-//       <span
-//         className={`w-1.5 h-1.5 rounded-full ${dotColor[status] || dotColor.inactive}`}
-//       />
-//       {status ? status.charAt(0).toUpperCase() + status.slice(1) : "—"}
+//     <span
+//       className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold ${style.pill}`}
+//     >
+//       <Icon size={13} />
+//       {status ? status.charAt(0).toUpperCase() + status.slice(1) : "Unknown"}
 //     </span>
 //   );
 // };
+
+// // ─── Animated completion ring, shown in the hero ─────────────
+// const CompletionRing = ({ percentage = 0, size = 60, strokeWidth = 5 }) => {
+//   const clamped = Math.min(100, Math.max(0, Number(percentage) || 0));
+//   const radius = (size - strokeWidth) / 2;
+//   const circumference = 2 * Math.PI * radius;
+//   const offset = circumference - (clamped / 100) * circumference;
+
+//   return (
+//     <div
+//       className="relative flex-shrink-0"
+//       style={{ width: size, height: size }}
+//       title={`Profile ${clamped}% complete`}
+//     >
+//       <svg width={size} height={size} className="-rotate-90">
+//         <circle
+//           cx={size / 2}
+//           cy={size / 2}
+//           r={radius}
+//           strokeWidth={strokeWidth}
+//           fill="none"
+//           className="stroke-white/25"
+//         />
+//         <motion.circle
+//           cx={size / 2}
+//           cy={size / 2}
+//           r={radius}
+//           strokeWidth={strokeWidth}
+//           fill="none"
+//           strokeLinecap="round"
+//           className="stroke-emerald-400"
+//           strokeDasharray={circumference}
+//           initial={{ strokeDashoffset: circumference }}
+//           animate={{ strokeDashoffset: offset }}
+//           transition={{ duration: 1, ease: "easeOut" }}
+//         />
+//       </svg>
+//       <div className="absolute inset-0 flex items-center justify-center">
+//         <span className="text-[11px] font-bold text-white">{clamped}%</span>
+//       </div>
+//     </div>
+//   );
+// };
+
+// // ─── Small reusable pieces ────────────────────────────────────
+// const FieldLabel = ({ children, required }) => (
+//   <label className="block text-[13px] font-medium text-slate-600 mb-1.5">
+//     {children}
+//     {required && <span className="text-red-500 ml-0.5">*</span>}
+//   </label>
+// );
+
+// const ReadOnlyValue = ({ children }) => (
+//   <div className="text-sm text-slate-700 py-2 px-3 bg-slate-50 rounded-lg border border-slate-200">
+//     {children || "—"}
+//   </div>
+// );
+
+// const HeroStat = ({ icon: Icon, label, value }) => (
+//   <div className="flex items-center gap-2.5 rounded-xl bg-white/10 backdrop-blur-sm px-3.5 py-2.5 min-w-0">
+//     <Icon size={16} className="text-white/70 flex-shrink-0" />
+//     <div className="min-w-0">
+//       <p className="text-[10px] text-black leading-tight">{label}</p>
+//       <p className="text-sm font-semibold text-black truncate leading-tight">
+//         {value || "—"}
+//       </p>
+//     </div>
+//   </div>
+// );
+
+// const Toggle = ({ checked, onChange, name }) => (
+//   <label className="relative inline-flex items-center cursor-pointer">
+//     <input
+//       type="checkbox"
+//       name={name}
+//       checked={checked || false}
+//       onChange={onChange}
+//       className="sr-only peer"
+//     />
+//     <div className="w-11 h-6 bg-slate-300 peer-checked:bg-blue-600 rounded-full transition-colors duration-300 after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:rounded-full after:h-5 after:w-5 after:shadow after:transition-transform after:duration-300 peer-checked:after:translate-x-5" />
+//   </label>
+// );
+
+// const TABS = [
+//   { id: "overview", label: "Overview", icon: MdApartment },
+//   { id: "relations", label: "Relations", icon: MdCategory },
+//   { id: "documents", label: "Documents", icon: MdDescription },
+//   { id: "media", label: "Media", icon: MdImage },
+//   { id: "activity", label: "Activity", icon: MdHistory },
+// ];
 
 // const EditCompany = () => {
 //   const navigate = useNavigate();
@@ -89,6 +220,9 @@
 
 //   const [loading, setLoading] = useState(false);
 //   const [deleteLoading, setDeleteLoading] = useState(false);
+//   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+//   const [activeTab, setActiveTab] = useState("overview");
+//   const [aboutCompanyMode, setAboutCompanyMode] = useState("rich");
 //   const [initialData, setInitialData] = useState(null);
 //   const [editItem, setEditItem] = useState(null);
 //   const [fetchLoading, setFetchLoading] = useState(true);
@@ -466,16 +600,17 @@
 //       showError(error.message || "Failed to delete company");
 //     } finally {
 //       setDeleteLoading(false);
+//       setIsDeleteModalOpen(false);
 //     }
 //   };
 
-//   // ─── Loading states ──────────────────────────────────────────
+//   // ─── Loading state ─────────────────────────────────────────────
 //   if (fetchLoading || loadingData) {
 //     return (
-//       <div className="flex items-center justify-center min-h-screen">
+//       <div className="flex items-center justify-center min-h-screen bg-[#F4F5FA]">
 //         <div className="flex flex-col items-center gap-3">
-//           <div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
-//           <p className="text-sm text-gray-400">Loading company data...</p>
+//           <div className="w-9 h-9 border-[3px] border-blue-500 border-t-transparent rounded-full animate-spin" />
+//           <p className="text-sm text-slate-400">Loading company data...</p>
 //         </div>
 //       </div>
 //     );
@@ -483,711 +618,897 @@
 
 //   if (!initialData) {
 //     return (
-//       <div className="flex items-center justify-center min-h-screen">
-//         <div className="text-center">
-//           <p className="text-gray-500">Company not found</p>
+//       <div className="flex items-center justify-center min-h-screen bg-[#F4F5FA]">
+//         <div className="text-center bg-white rounded-2xl border border-slate-200 shadow-sm px-10 py-12">
+//           <MdErrorOutline size={40} className="text-slate-300 mx-auto mb-3" />
+//           <p className="text-slate-600 font-medium">Company not found</p>
+//           <p className="text-sm text-slate-400 mt-1">
+//             It may have been removed or the link is incorrect.
+//           </p>
 //           <button
 //             onClick={() => navigate("/companies")}
-//             className="mt-3 text-blue-600 hover:underline"
+//             className="mt-5 inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
 //           >
-//             Go back
+//             <MdArrowBack size={16} />
+//             Back to companies
 //           </button>
 //         </div>
 //       </div>
 //     );
 //   }
 
-//   // ─── Render helpers for images and status ────────────────────
-//   const renderImagePreview = (
-//     path,
-//     alt = "Image",
-//     className = "w-24 h-24 object-cover rounded-lg",
-//   ) => {
-//     if (!path) return <span className="text-gray-400">No image</span>;
+//   const renderDocPreview = (path, alt, size = "w-28 h-20") => {
+//     if (!path)
+//       return (
+//         <div
+//           className={`${size} rounded-lg border border-dashed border-slate-300 flex items-center justify-center text-[11px] text-slate-400`}
+//         >
+//           No image
+//         </div>
+//       );
 //     return (
-//       <div className="relative group inline-block">
+//       <div className={`relative group ${size} flex-shrink-0`}>
 //         <img
 //           src={path.startsWith("blob:") ? path : getImageUrl(path)}
 //           alt={alt}
-//           className={`${className} border border-gray-200 shadow-sm`}
+//           className="w-full h-full object-cover rounded-lg border border-slate-200 shadow-sm"
 //           onError={(e) => {
 //             e.target.style.display = "none";
 //           }}
 //         />
+//         <button
+//           type="button"
+//           onClick={() =>
+//             window.open(
+//               path.startsWith("blob:") ? path : getImageUrl(path),
+//               "_blank",
+//             )
+//           }
+//           className="absolute inset-0 bg-slate-900/0 group-hover:bg-slate-900/50 rounded-lg flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-200"
+//         >
+//           <span className="text-white text-xs font-medium flex items-center gap-1">
+//             <MdOpenInNew size={13} /> View
+//           </span>
+//         </button>
 //       </div>
 //     );
 //   };
 
-//   const renderCompletionBar = (percentage) => {
-//     const p = parseInt(percentage) || 0;
-//     const color =
-//       p === 100
-//         ? "bg-green-500"
-//         : p >= 75
-//           ? "bg-blue-500"
-//           : p >= 50
-//             ? "bg-yellow-500"
-//             : p >= 25
-//               ? "bg-orange-500"
-//               : "bg-red-500";
-//     return (
-//       <div className="flex items-center gap-4">
-//         <div className="w-48 h-3 bg-gray-200 rounded-full overflow-hidden">
-//           <div
-//             className={`h-full ${color} rounded-full transition-all duration-500`}
-//             style={{ width: `${p}%` }}
-//           />
-//         </div>
-//         <span className="text-sm font-medium text-gray-700">{p}%</span>
-//       </div>
-//     );
-//   };
+//   const completionPct = parseInt(formValues.profile_completion_percentage) || 0;
+//   const heroName = formValues.company_name?.trim() || "Unnamed Company";
+//   const initials = heroName
+//     .split(" ")
+//     .filter(Boolean)
+//     .slice(0, 2)
+//     .map((w) => w[0]?.toUpperCase())
+//     .join("");
 
-//   // ─── Main render ──────────────────────────────────────────────
 //   return (
-//     <div className="min-h-screen bg-gray-50 py-8 px-4 sm:px-6 lg:px-8 animate-fadeIn">
-//       <div className="max-w-7xl mx-auto">
-//         {/* ─── Header ─────────────────────────────────────────────── */}
-//         <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
-//           <div className="flex items-center gap-3">
+//     <div className="min-h-screen pb-16">
+//       {/* ─── Sticky action bar ─────────────────────────────────── */}
+//       <div className="bg-white/85 backdrop-blur-md border-b border-slate-200">
+//         <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between gap-4">
+//           <div className="flex items-center gap-3 min-w-0">
 //             <button
 //               onClick={() => navigate("/companies")}
-//               className="p-2 rounded-lg hover:bg-gray-200 transition-colors"
+//               className="p-2 rounded-lg hover:bg-slate-100 transition-colors flex-shrink-0"
 //               aria-label="Back"
 //             >
-//               <MdArrowBack size={20} className="text-gray-600" />
+//               <MdArrowBack size={19} className="text-slate-600" />
 //             </button>
-//             <div>
-//               <h1 className="text-2xl font-bold text-gray-900">
-//                 {editItem?.company_name || "Edit Company"}
-//               </h1>
-//               {/* <p className="text-sm text-gray-500">
-//                 {editItem?.profile_type === "consultant" ? "Consultant" : "Company"} • ID: {editItem?.id}
-//               </p> */}
+//             <div className="min-w-0">
+//               <p className="text-[11px] text-slate-400 leading-tight">
+//                 Companies
+//               </p>
+//               <p className="text-sm font-semibold text-slate-800 truncate leading-tight max-w-[45vw]">
+//                 {heroName}
+//               </p>
 //             </div>
 //           </div>
-//           <div className="flex gap-3">
-//             <button
+//           <div className="flex items-center gap-2 flex-shrink-0">
+//             {/* <button
+//               type="button"
+//               onClick={() => setIsDeleteModalOpen(true)}
+//               className="p-2 rounded-lg text-red-500 hover:bg-red-50 transition-colors"
+//               aria-label="Delete company"
+//               title="Delete company"
+//             >
+//               <MdDelete size={19} />
+//             </button> */}
+//             {/* <button
 //               type="button"
 //               onClick={() => navigate("/companies")}
-//               className="inline-flex items-center gap-2 px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-lg shadow-sm transition-colors"
+//               className="hidden sm:inline-flex items-center gap-1.5 px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-600 text-sm font-medium rounded-lg transition-colors"
 //             >
-//               <MdCancel size={18} />
+//               <MdCancel size={16} />
 //               Cancel
-//             </button>
+//             </button> */}
 //             <button
 //               type="button"
 //               onClick={handleSubmit}
 //               disabled={loading}
-//               className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg shadow-sm transition-colors disabled:opacity-50"
+//               className="inline-flex items-center gap-1.5 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-lg shadow-sm shadow-blue-600/20 transition-colors disabled:opacity-50"
 //             >
-//               <MdSave size={18} />
-//               {loading ? "Saving..." : "Save Changes"}
+//               {loading ? (
+//                 <span className="w-3.5 h-3.5 border-2 border-white/60 border-t-transparent rounded-full animate-spin" />
+//               ) : (
+//                 <MdSave size={16} />
+//               )}
+//               {loading ? "Saving..." : "Save changes"}
 //             </button>
 //           </div>
 //         </div>
+//       </div>
 
-//         <form onSubmit={handleSubmit}>
-//           {/* ─── Two‑column grid ─────────────────────────────────────── */}
-//           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-//             {/* ─── Left Column ──────────────────────────────────────── */}
-//             <div className="space-y-6">
-//               {/* Basic Information */}
-//               <section className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-//                 <div className="px-6 py-4 border-b border-gray-100 bg-gray-50/50">
-//                   <h2 className="text-sm font-semibold text-gray-700 uppercase tracking-wider">
-//                     Basic Information
-//                   </h2>
-//                 </div>
-//                 <div className="p-6 space-y-4">
-//                   {/* Company Name */}
-//                   <div>
-//                     <label className="text-xs font-medium text-gray-500 uppercase tracking-wider">
-//                       Company Name <span className="text-red-500">*</span>
-//                     </label>
-//                     <input
-//                       type="text"
-//                       name="company_name"
-//                       value={formValues.company_name || ""}
-//                       onChange={handleInputChange}
-//                       className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-100 focus:border-blue-300 transition-colors"
-//                       placeholder="e.g. Acme Corp"
-//                       required
-//                     />
-//                   </div>
+//       <div className="max-w-7xl mx-auto px-4 sm:px-6 pt-6">
+//         {/* ─── Hero ───────────────────────────────────────────────── */}
+//         <motion.div
+//           initial={{ opacity: 0, y: 12 }}
+//           animate={{ opacity: 1, y: 0 }}
+//           transition={{ duration: 0.35, ease: "easeOut" }}
+//           className="relative rounded-2xl overflow-hidden shadow-lg shadow-slate-900/5"
+//         >
+//           <div className="relative h-44 sm:h-52">
+//             {formValues.banner_image ? (
+//               <img
+//                 src={
+//                   formValues.banner_image.startsWith("blob:")
+//                     ? formValues.banner_image
+//                     : getImageUrl(formValues.banner_image)
+//                 }
+//                 alt="Banner"
+//                 className="w-full h-full object-cover"
+//                 onError={(e) => {
+//                   e.target.style.display = "none";
+//                 }}
+//               />
+//             ) : (
+//               <div className="w-full h-full bg-gradient-to-br from-slate-900 via-blue-900 to-indigo-800" />
+//             )}
+//             <div className="absolute inset-0 bg-gradient-to-t from-slate-900/95 via-slate-900/50 to-slate-900/10" />
+//           </div>
 
-//                   {/* Profile Type (read‑only) */}
-//                   <div>
-//                     <label className="text-xs font-medium text-gray-500 uppercase tracking-wider">
-//                       Profile Type
-//                     </label>
-//                     <div className="mt-1">
-//                       <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-indigo-50 text-indigo-700">
-//                         {formValues.profile_type || "—"}
-//                       </span>
-//                     </div>
+//           <div className="absolute inset-x-0 bottom-0 px-5 sm:px-7 pb-5 pt-3">
+//             <div className="flex flex-col sm:flex-row sm:items-end gap-4">
+//               {/* Logo */}
+//               <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-white p-1.5 shadow-xl flex-shrink-0">
+//                 {formValues.logo ? (
+//                   <img
+//                     src={
+//                       formValues.logo.startsWith("blob:")
+//                         ? formValues.logo
+//                         : getImageUrl(formValues.logo)
+//                     }
+//                     alt="Logo"
+//                     className="w-full h-full object-cover rounded-xl"
+//                     onError={(e) => {
+//                       e.target.style.display = "none";
+//                     }}
+//                   />
+//                 ) : (
+//                   <div className="w-full h-full rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white font-bold text-lg">
+//                     {initials || <MdApartment size={22} />}
 //                   </div>
+//                 )}
+//               </div>
 
-//                   {/* Slug */}
-//                   <div>
-//                     <label className="text-xs font-medium text-gray-500 uppercase tracking-wider">
-//                       Slug (URL identifier)
-//                     </label>
-//                     <input
-//                       type="text"
-//                       name="slug"
-//                       value={formValues.slug || ""}
-//                       onChange={handleInputChange}
-//                       className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-100 focus:border-blue-300 transition-colors"
-//                       placeholder="auto-generated if empty"
-//                     />
-//                   </div>
-
-//                   {/* Website */}
-//                   <div>
-//                     <label className="text-xs font-medium text-gray-500 uppercase tracking-wider">
-//                       Website
-//                     </label>
-//                     <input
-//                       type="url"
-//                       name="website"
-//                       value={formValues.website || ""}
-//                       onChange={handleInputChange}
-//                       className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-100 focus:border-blue-300 transition-colors"
-//                       placeholder="https://example.com"
-//                     />
-//                   </div>
-
-//                   {/* Founded Year */}
-//                   <div>
-//                     <label className="text-xs font-medium text-gray-500 uppercase tracking-wider">
-//                       Founded Year
-//                     </label>
-//                     <input
-//                       type="number"
-//                       name="founded_year"
-//                       value={formValues.founded_year || ""}
-//                       onChange={handleInputChange}
-//                       className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-100 focus:border-blue-300 transition-colors"
-//                       placeholder="2020"
-//                       min="1900"
-//                       max={new Date().getFullYear()}
-//                     />
-//                   </div>
-
-//                   {/* About Company */}
-//                   <div>
-//                     <label className="text-xs font-medium text-gray-500 uppercase tracking-wider">
-//                       About Company
-//                     </label>
-//                     <div className="mt-1">
-//                       <Editor
-//                         tinymceScriptSrc="/tinymce/tinymce.min.js"
-//                         licenseKey="gpl"
-//                         value={formValues.about_company || ""}
-//                         onEditorChange={(content) =>
-//                           setFormValues((prev) => ({
-//                             ...prev,
-//                             about_company: content,
-//                           }))
-//                         }
-//                         init={{
-//                           height: 300,
-//                           menubar: false,
-//                           plugins: [
-//                             "advlist",
-//                             "autolink",
-//                             "lists",
-//                             "link",
-//                             "image",
-//                             "charmap",
-//                             "preview",
-//                             "anchor",
-//                             "searchreplace",
-//                             "visualblocks",
-//                             "code",
-//                             "fullscreen",
-//                             "insertdatetime",
-//                             "media",
-//                             "table",
-//                             "help",
-//                             "wordcount",
-//                           ],
-//                           toolbar:
-//                             "undo redo | blocks | bold italic underline forecolor | " +
-//                             "alignleft aligncenter alignright alignjustify | " +
-//                             "bullist numlist outdent indent | link image table | " +
-//                             "removeformat code | help",
-//                           content_style:
-//                             "body { font-family:Helvetica,Arial,sans-serif; font-size:14px }",
-//                           image_advtab: true,
-//                           images_upload_handler: (blobInfo) =>
-//                             new Promise((resolve, reject) => {
-//                               const reader = new FileReader();
-//                               reader.onload = () => resolve(reader.result);
-//                               reader.onerror = () =>
-//                                 reject("Image upload failed");
-//                               reader.readAsDataURL(blobInfo.blob());
-//                             }),
-//                         }}
-//                       />
-//                     </div>
-//                   </div>
-//                   {/* GST Number */}
-//                   <div>
-//                     <label className="text-xs font-medium text-gray-500 uppercase tracking-wider">
-//                       GST Number
-//                     </label>
-//                     <input
-//                       type="text"
-//                       name="gst_number"
-//                       value={formValues.gst_number || ""}
-//                       onChange={handleInputChange}
-//                       className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-100 focus:border-blue-300 transition-colors"
-//                       placeholder="e.g. 24ABCDE1234F1Z5"
-//                     />
-//                   </div>
-//                 </div>
-//               </section>
-
-//               {/* Relations (Company User is read-only, others editable) */}
-//               <section className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-//                 <div className="px-6 py-4 border-b border-gray-100 bg-gray-50/50">
-//                   <h2 className="text-sm font-semibold text-gray-700 uppercase tracking-wider">
-//                     Relations
-//                   </h2>
-//                 </div>
-//                 <div className="p-6 space-y-4">
-//                   {/* Company User (read‑only) */}
-//                   <div>
-//                     <label className="text-xs font-medium text-gray-500 uppercase tracking-wider">
-//                       Company User
-//                     </label>
-//                     <div className="mt-1 text-gray-700">
-//                       {formValues.company_user_email || "—"}
-//                     </div>
-//                   </div>
-
-//                   {/* Industry (editable dropdown) */}
-//                   <div>
-//                     <label className="text-xs font-medium text-gray-500 uppercase tracking-wider">
-//                       Industry
-//                     </label>
-//                     <select
-//                       name="industry_id"
-//                       value={formValues.industry_id || ""}
-//                       onChange={handleInputChange}
-//                       className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-100 focus:border-blue-300 transition-colors"
-//                       disabled={loadingData}
-//                     >
-//                       <option value="">
-//                         {loadingData ? "Loading..." : "Select an industry"}
-//                       </option>
-//                       {industryOptions.map((opt) => (
-//                         <option key={opt.value} value={opt.value}>
-//                           {opt.label}
-//                         </option>
-//                       ))}
-//                     </select>
-//                   </div>
-
-//                   {/* Sub‑industry (editable dropdown) */}
-//                   <div>
-//                     <label className="text-xs font-medium text-gray-500 uppercase tracking-wider">
-//                       Sub‑industry
-//                     </label>
-//                     <select
-//                       name="sub_industry_id"
-//                       value={formValues.sub_industry_id || ""}
-//                       onChange={handleInputChange}
-//                       className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-100 focus:border-blue-300 transition-colors"
-//                       disabled={loadingData}
-//                     >
-//                       <option value="">
-//                         {loadingData ? "Loading..." : "Select a sub-industry"}
-//                       </option>
-//                       {subIndustryOptions.map((opt) => (
-//                         <option key={opt.value} value={opt.value}>
-//                           {opt.label}
-//                         </option>
-//                       ))}
-//                     </select>
-//                   </div>
-
-//                   {/* Company Size (editable dropdown) */}
-//                   <div>
-//                     <label className="text-xs font-medium text-gray-500 uppercase tracking-wider">
-//                       Company Size
-//                     </label>
-//                     <select
-//                       name="company_size_id"
-//                       value={formValues.company_size_id || ""}
-//                       onChange={handleInputChange}
-//                       className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-100 focus:border-blue-300 transition-colors"
-//                       disabled={loadingData}
-//                     >
-//                       <option value="">
-//                         {loadingData ? "Loading..." : "Select a company size"}
-//                       </option>
-//                       {sizeOptions.map((opt) => (
-//                         <option key={opt.value} value={opt.value}>
-//                           {opt.label}
-//                         </option>
-//                       ))}
-//                     </select>
-//                   </div>
-//                 </div>
-//               </section>
-//             </div>
-
-//             {/* ─── Right Column ──────────────────────────────────────── */}
-//             <div className="space-y-6">
-//               {/* Status & Flags */}
-//               <section className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-//                 <div className="px-6 py-4 border-b border-gray-100 bg-gray-50/50">
-//                   <h2 className="text-sm font-semibold text-gray-700 uppercase tracking-wider">
-//                     Status & Flags
-//                   </h2>
-//                 </div>
-//                 <div className="p-6 space-y-4">
-//                   {/* Company Status */}
-//                   <div>
-//                     <label className="text-xs font-medium text-gray-500 uppercase tracking-wider">
-//                       Company Status <span className="text-red-500">*</span>
-//                     </label>
-//                     <select
-//                       name="company_status"
-//                       value={formValues.company_status || "active"}
-//                       onChange={handleInputChange}
-//                       className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-100 focus:border-blue-300 transition-colors"
-//                     >
-//                       {COMPANY_STATUS_OPTIONS.map((opt) => (
-//                         <option key={opt.value} value={opt.value}>
-//                           {opt.label}
-//                         </option>
-//                       ))}
-//                     </select>
-//                   </div>
-
-//                   {/* Internal Status (read‑only) - commented out as original */}
-//                   {/*
-//                   <div>
-//                     <label className="text-xs font-medium text-gray-500 uppercase tracking-wider">
-//                       Internal Status
-//                     </label>
-//                     <div className="mt-1">
-//                       <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${formValues.is_status === "active" ? "bg-blue-50 text-blue-700" : "bg-gray-100 text-gray-500"}`}>
-//                         <span className={`w-1.5 h-1.5 rounded-full ${formValues.is_status === "active" ? "bg-blue-500" : "bg-gray-400"}`} />
-//                         {formValues.is_status === "active" ? "Active" : "Inactive"}
-//                       </span>
-//                     </div>
-//                   </div>
-//                   */}
-
-//                   {/* Trending */}
-//                   <div>
-//                     <label className="text-xs font-medium text-gray-500 uppercase tracking-wider">
+//               {/* Name + chips */}
+//               <div className="flex-1 min-w-0">
+//                 <div className="flex items-center gap-2 flex-wrap">
+//                   <h1 className="text-xl sm:text-2xl font-bold text-white truncate max-w-full">
+//                     {heroName}
+//                   </h1>
+//                   {formValues.is_trending && (
+//                     <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-orange-400/20 text-orange-300 ring-1 ring-orange-400/30">
+//                       <MdWhatshot size={12} />
 //                       Trending
-//                     </label>
-//                     <div className="mt-1 flex items-center gap-3">
-//                       <input
-//                         type="checkbox"
-//                         name="is_trending"
-//                         checked={formValues.is_trending || false}
-//                         onChange={handleInputChange}
-//                         className="w-4 h-4 text-yellow-500 border-gray-300 rounded focus:ring-yellow-500"
-//                       />
-//                       <span className="text-sm text-gray-600">
-//                         {formValues.is_trending ? "Trending" : "Not Trending"}
-//                       </span>
-//                     </div>
-//                   </div>
+//                     </span>
+//                   )}
 //                 </div>
-//               </section>
+//                 <div className="mt-2 flex items-center gap-2 flex-wrap">
+//                   <StatusPill status={formValues.company_status} />
+//                   <span className="text-xs text-white/70 capitalize">
+//                     {formValues.profile_type || "company"}
+//                   </span>
+//                   {formValues.website && (
+//                     <a
+//                       href={
+//                         formValues.website.startsWith("http")
+//                           ? formValues.website
+//                           : `https://${formValues.website}`
+//                       }
+//                       target="_blank"
+//                       rel="noopener noreferrer"
+//                       className="inline-flex items-center gap-1 text-xs text-white/80 hover:text-white transition-colors"
+//                     >
+//                       <MdLanguage size={13} />
+//                       Website
+//                       <MdOpenInNew size={11} />
+//                     </a>
+//                   )}
+//                 </div>
+//               </div>
 
-//               {/* Profile Completion (read‑only) */}
-//               <section className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-//                 <div className="px-6 py-4 border-b border-gray-100 bg-gray-50/50">
-//                   <h2 className="text-sm font-semibold text-gray-700 uppercase tracking-wider">
-//                     Profile Completion
-//                   </h2>
-//                 </div>
-//                 <div className="p-6 space-y-4">
-//                   <div>
-//                     <label className="text-xs font-medium text-gray-500 uppercase tracking-wider">
-//                       Completion Score
-//                     </label>
-//                     <div className="mt-1 text-gray-700 font-medium">
-//                       {formValues.profile_completion}/100
-//                     </div>
-//                   </div>
-//                   <div>
-//                     <label className="text-xs font-medium text-gray-500 uppercase tracking-wider">
-//                       Progress
-//                     </label>
-//                     <div className="mt-1">
-//                       {renderCompletionBar(
-//                         formValues.profile_completion_percentage,
-//                       )}
-//                     </div>
-//                   </div>
-//                   <div>
-//                     <label className="text-xs font-medium text-gray-500 uppercase tracking-wider">
-//                       Last Calculated
-//                     </label>
-//                     <div className="mt-1 text-gray-700 text-sm">
-//                       {formValues.last_completion_calculated_at
-//                         ? formatDate(
-//                             parseApiDate(
-//                               formValues.last_completion_calculated_at,
-//                             ),
-//                           )
-//                         : "—"}
-//                     </div>
-//                   </div>
-//                 </div>
-//               </section>
-
-//               {/* Documents (read‑only) */}
-//               <section className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-//                 <div className="px-6 py-4 border-b border-gray-100 bg-gray-50/50">
-//                   <h2 className="text-sm font-semibold text-gray-700 uppercase tracking-wider">
-//                     Documents
-//                   </h2>
-//                 </div>
-//                 <div className="p-6 space-y-4">
-//                   <div>
-//                     <label className="text-xs font-medium text-gray-500 uppercase tracking-wider">
-//                       Registration Document Type
-//                     </label>
-//                     <div className="mt-1 text-gray-700">
-//                       {formValues.company_register_document_type || "—"}
-//                     </div>
-//                   </div>
-//                   <div>
-//                     <label className="text-xs font-medium text-gray-500 uppercase tracking-wider">
-//                       Registration Document
-//                     </label>
-//                     <div className="mt-1">
-//                       {formValues.company_register_document ? (
-//                         <a
-//                           href={getImageUrl(
-//                             formValues.company_register_document,
-//                           )}
-//                           target="_blank"
-//                           rel="noopener noreferrer"
-//                           className="text-blue-600 hover:underline text-sm flex items-center gap-2"
-//                         >
-//                           <span>📄</span>
-//                           {formValues.company_register_document
-//                             .split("/")
-//                             .pop()}
-//                         </a>
-//                       ) : (
-//                         <span className="text-gray-400">No document</span>
-//                       )}
-//                     </div>
-//                   </div>
-//                   <div>
-//                     <label className="text-xs font-medium text-gray-500 uppercase tracking-wider">
-//                       PAN Card Number
-//                     </label>
-//                     <div className="mt-1 font-mono text-sm bg-gray-50 px-2 py-1 rounded border border-gray-200 inline-block">
-//                       {formValues.company_pan_card || "—"}
-//                     </div>
-//                   </div>
-//                   <div>
-//                     <label className="text-xs font-medium text-gray-500 uppercase tracking-wider">
-//                       PAN Card Image
-//                     </label>
-//                     <div className="mt-1">
-//                       {formValues.company_pan_card_image ? (
-//                         <div className="relative group inline-block">
-//                           <img
-//                             src={getImageUrl(formValues.company_pan_card_image)}
-//                             alt="PAN Card"
-//                             className="w-32 h-20 object-cover rounded-lg border border-gray-200 shadow-sm"
-//                             onError={(e) => {
-//                               e.target.style.display = "none";
-//                             }}
-//                           />
-//                           <button
-//                             onClick={() =>
-//                               window.open(
-//                                 getImageUrl(formValues.company_pan_card_image),
-//                                 "_blank",
-//                               )
-//                             }
-//                             className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center text-white"
-//                             title="View full image"
-//                           >
-//                             <span className="text-xs">View</span>
-//                           </button>
-//                         </div>
-//                       ) : (
-//                         <span className="text-gray-400">No image</span>
-//                       )}
-//                     </div>
-//                   </div>
-//                   <div>
-//                     <label className="text-xs font-medium text-gray-500 uppercase tracking-wider">
-//                       Owner Aadhar Number
-//                     </label>
-//                     <div className="mt-1 font-mono text-sm bg-gray-50 px-2 py-1 rounded border border-gray-200 inline-block">
-//                       {formValues.owner_adharcard || "—"}
-//                     </div>
-//                   </div>
-//                   <div>
-//                     <label className="text-xs font-medium text-gray-500 uppercase tracking-wider">
-//                       Owner Aadhar Image
-//                     </label>
-//                     <div className="mt-1">
-//                       {formValues.owner_adharcard_image ? (
-//                         <div className="relative group inline-block">
-//                           <img
-//                             src={getImageUrl(formValues.owner_adharcard_image)}
-//                             alt="Aadhar Card"
-//                             className="w-32 h-20 object-cover rounded-lg border border-gray-200 shadow-sm"
-//                             onError={(e) => {
-//                               e.target.style.display = "none";
-//                             }}
-//                           />
-//                           <button
-//                             onClick={() =>
-//                               window.open(
-//                                 getImageUrl(formValues.owner_adharcard_image),
-//                                 "_blank",
-//                               )
-//                             }
-//                             className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center text-white"
-//                             title="View full image"
-//                           >
-//                             <span className="text-xs">View</span>
-//                           </button>
-//                         </div>
-//                       ) : (
-//                         <span className="text-gray-400">No image</span>
-//                       )}
-//                     </div>
-//                   </div>
-//                 </div>
-//               </section>
-
-//               {/* Images (Logo & Banner) - editable file uploads */}
-//               <section className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-//                 <div className="px-6 py-4 border-b border-gray-100 bg-gray-50/50">
-//                   <h2 className="text-sm font-semibold text-gray-700 uppercase tracking-wider">
-//                     Images
-//                   </h2>
-//                 </div>
-//                 <div className="p-6 space-y-4">
-//                   {/* Logo */}
-//                   <div>
-//                     <label className="text-xs font-medium text-gray-500 uppercase tracking-wider">
-//                       Logo
-//                     </label>
-//                     <div className="mt-1 flex items-center gap-4">
-//                       {formValues.logo ? (
-//                         renderImagePreview(
-//                           formValues.logo,
-//                           "Logo",
-//                           "w-20 h-20 object-cover rounded-lg",
-//                         )
-//                       ) : (
-//                         <span className="text-gray-400">No logo</span>
-//                       )}
-//                       <input
-//                         type="file"
-//                         accept="image/*"
-//                         onChange={(e) => handleFileChange(e, "logo")}
-//                         className="text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
-//                       />
-//                     </div>
-//                   </div>
-//                   {/* Banner */}
-//                   <div>
-//                     <label className="text-xs font-medium text-gray-500 uppercase tracking-wider">
-//                       Banner Image
-//                     </label>
-//                     <div className="mt-1 flex items-center gap-4">
-//                       {formValues.banner_image ? (
-//                         renderImagePreview(
-//                           formValues.banner_image,
-//                           "Banner",
-//                           "w-48 h-24 object-cover rounded-lg",
-//                         )
-//                       ) : (
-//                         <span className="text-gray-400">No banner</span>
-//                       )}
-//                       <input
-//                         type="file"
-//                         accept="image/*"
-//                         onChange={(e) => handleFileChange(e, "banner_image")}
-//                         className="text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
-//                       />
-//                     </div>
-//                   </div>
-//                 </div>
-//               </section>
-
-//               {/* Audit (read‑only) */}
-//               <section className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-//                 <div className="px-6 py-4 border-b border-gray-100 bg-gray-50/50">
-//                   <h2 className="text-sm font-semibold text-gray-700 uppercase tracking-wider">
-//                     Audit
-//                   </h2>
-//                 </div>
-//                 <div className="p-6 space-y-4">
-//                   {/* Created By (commented out in original) */}
-//                   {/*
-//                   <div>
-//                     <label className="text-xs font-medium text-gray-500 uppercase tracking-wider">
-//                       Created By
-//                     </label>
-//                     <div className="mt-1 text-gray-700 text-sm font-medium">
-//                       {formValues.created_by_name || "—"}
-//                     </div>
-//                   </div>
-//                   <div>
-//                     <label className="text-xs font-medium text-gray-500 uppercase tracking-wider">
-//                       Created At
-//                     </label>
-//                     <div className="mt-1 text-gray-700 text-sm">
-//                       {formValues.created_at ? formatDate(formValues.created_at) : "—"}
-//                     </div>
-//                   </div>
-//                   */}
-
-//                   {/* Updated By */}
-//                   <div>
-//                     <label className="text-xs font-medium text-gray-500 uppercase tracking-wider">
-//                       Updated By
-//                     </label>
-//                     <div className="mt-1 text-gray-700 text-sm font-medium">
-//                       {formValues.updated_by_name || "—"}
-//                     </div>
-//                   </div>
-//                   <div>
-//                     <label className="text-xs font-medium text-gray-500 uppercase tracking-wider">
-//                       Updated At
-//                     </label>
-//                     <div className="mt-1 text-gray-700 text-sm">
-//                       {formValues.updated_at
-//                         ? formatDate(formValues.updated_at)
-//                         : "—"}
-//                     </div>
-//                   </div>
-//                 </div>
-//               </section>
+//               {/* Completion ring */}
+//               <div className="hidden sm:block">
+//                 <CompletionRing percentage={completionPct} />
+//               </div>
 //             </div>
 //           </div>
-//         </form>
+//         </motion.div>
+
+//         {/* ─── Quick stat strip ──────────────────────────────────── */}
+//         {/* <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-4">
+//           <HeroStat
+//             icon={MdCategory}
+//             label="Industry"
+//             value={formValues.industry_name}
+//           />
+//           <HeroStat
+//             icon={MdGroups}
+//             label="Company size"
+//             value={formValues.company_size_name}
+//           />
+//           <HeroStat
+//             icon={MdCalendarToday}
+//             label="Founded"
+//             value={formValues.founded_year}
+//           />
+//           <HeroStat
+//             icon={MdReceiptLong}
+//             label="GST number"
+//             value={formValues.gst_number}
+//           />
+//         </div> */}
+
+//         {/* ─── Tabs ───────────────────────────────────────────────── */}
+//         <div className="mt-6 bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+//           <div className="flex overflow-x-auto border-b border-slate-200 px-2">
+//             {TABS.map((tab) => {
+//               const Icon = tab.icon;
+//               const active = activeTab === tab.id;
+//               return (
+//                 <button
+//                   key={tab.id}
+//                   type="button"
+//                   onClick={() => setActiveTab(tab.id)}
+//                   className={`relative flex items-center gap-1.5 px-4 py-3.5 text-sm font-medium whitespace-nowrap transition-colors ${
+//                     active
+//                       ? "text-blue-600"
+//                       : "text-slate-500 hover:text-slate-700"
+//                   }`}
+//                 >
+//                   <Icon size={16} />
+//                   {tab.label}
+//                   {active && (
+//                     <motion.span
+//                       layoutId="edit-company-tab-underline"
+//                       className="absolute left-2 right-2 -bottom-px h-0.5 bg-blue-600 rounded-full"
+//                       transition={{
+//                         type: "spring",
+//                         stiffness: 500,
+//                         damping: 35,
+//                       }}
+//                     />
+//                   )}
+//                 </button>
+//               );
+//             })}
+//           </div>
+
+//           <div className="p-5 sm:p-7">
+//             <AnimatePresence mode="wait">
+//               <motion.div
+//                 key={activeTab}
+//                 initial={{ opacity: 0, y: 6 }}
+//                 animate={{ opacity: 1, y: 0 }}
+//                 exit={{ opacity: 0, y: -6 }}
+//                 transition={{ duration: 0.18 }}
+//               >
+//                 {/* ─── OVERVIEW ─────────────────────────────────── */}
+//                 {activeTab === "overview" && (
+//                   <div className="space-y-5">
+//                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+//                       <div className="sm:col-span-2">
+//                         <FieldLabel required>Company name</FieldLabel>
+//                         <input
+//                           type="text"
+//                           name="company_name"
+//                           value={formValues.company_name || ""}
+//                           onChange={handleInputChange}
+//                           className="w-full px-3.5 py-2.5 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-100 focus:border-blue-400 transition-colors"
+//                           placeholder="e.g. Acme Corp"
+//                           required
+//                         />
+//                       </div>
+
+//                       <div>
+//                         <FieldLabel>Slug (URL identifier)</FieldLabel>
+//                         <input
+//                           type="text"
+//                           name="slug"
+//                           value={formValues.slug || ""}
+//                           onChange={handleInputChange}
+//                           className="w-full px-3.5 py-2.5 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-100 focus:border-blue-400 transition-colors"
+//                           placeholder="auto-generated if empty"
+//                         />
+//                       </div>
+
+//                       <div>
+//                         <FieldLabel>Website</FieldLabel>
+//                         <input
+//                           type="url"
+//                           name="website"
+//                           value={formValues.website || ""}
+//                           onChange={handleInputChange}
+//                           className="w-full px-3.5 py-2.5 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-100 focus:border-blue-400 transition-colors"
+//                           placeholder="https://example.com"
+//                         />
+//                       </div>
+
+//                       <div>
+//                         <FieldLabel>Founded year</FieldLabel>
+//                         <input
+//                           type="number"
+//                           name="founded_year"
+//                           value={formValues.founded_year || ""}
+//                           onChange={handleInputChange}
+//                           className="w-full px-3.5 py-2.5 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-100 focus:border-blue-400 transition-colors"
+//                           placeholder="2020"
+//                           min="1900"
+//                           max={new Date().getFullYear()}
+//                         />
+//                       </div>
+
+//                       <div>
+//                         <FieldLabel>GST number</FieldLabel>
+//                         <input
+//                           type="text"
+//                           name="gst_number"
+//                           value={formValues.gst_number || ""}
+//                           onChange={handleInputChange}
+//                           className="w-full px-3.5 py-2.5 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-100 focus:border-blue-400 transition-colors"
+//                           placeholder="e.g. 24ABCDE1234F1Z5"
+//                         />
+//                       </div>
+//                     </div>
+
+//                     <div>
+//                       <FieldLabel>About company</FieldLabel>
+
+//                       <div className="mb-3 flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-100 p-1 w-fit shadow-sm">
+//                         {[
+//                           { id: "rich", label: "Text" },
+//                           { id: "html", label: "HTML" },
+//                         ].map((tab) => (
+//                           <button
+//                             key={tab.id}
+//                             type="button"
+//                             onClick={() => setAboutCompanyMode(tab.id)}
+//                             className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
+//                               aboutCompanyMode === tab.id
+//                                 ? "bg-white text-blue-700 shadow-sm ring-1 ring-blue-100"
+//                                 : "text-slate-600 hover:text-slate-800"
+//                             }`}
+//                           >
+//                             {tab.label}
+//                           </button>
+//                         ))}
+//                       </div>
+
+//                       {aboutCompanyMode === "rich" ? (
+//                         <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+//                           <Editor
+//                             tinymceScriptSrc="/tinymce/tinymce.min.js"
+//                             licenseKey="gpl"
+//                             value={formValues.about_company || ""}
+//                             onEditorChange={(content) =>
+//                               setFormValues((prev) => ({
+//                                 ...prev,
+//                                 about_company: content,
+//                               }))
+//                             }
+//                             init={{
+//                               height: 320,
+//                               menubar: false,
+//                               statusbar: true,
+//                               plugins: [
+//                                 "advlist",
+//                                 "autolink",
+//                                 "lists",
+//                                 "link",
+//                                 "image",
+//                                 "charmap",
+//                                 "preview",
+//                                 "anchor",
+//                                 "searchreplace",
+//                                 "visualblocks",
+//                                 "code",
+//                                 "fullscreen",
+//                                 "insertdatetime",
+//                                 "media",
+//                                 "table",
+//                                 "help",
+//                                 "wordcount",
+//                               ],
+//                               toolbar:
+//                                 "undo redo | styleselect | bold italic underline strikethrough | " +
+//                                 "fontfamily fontsize | forecolor backcolor | " +
+//                                 "alignleft aligncenter alignright alignjustify | " +
+//                                 "bullist numlist outdent indent | link image table | " +
+//                                 "removeformat code fullscreen | help",
+//                               content_style:
+//                                 "body { font-family: 'Inter', Arial, sans-serif; font-size: 14px; line-height: 1.7; } p { margin: 0 0 10px; }",
+//                               placeholder: "Write your company profile here...",
+//                               images_upload_handler: (blobInfo) =>
+//                                 new Promise((resolve, reject) => {
+//                                   const reader = new FileReader();
+//                                   reader.onload = () => resolve(reader.result);
+//                                   reader.onerror = () =>
+//                                     reject("Image upload failed");
+//                                   reader.readAsDataURL(blobInfo.blob());
+//                                 }),
+//                             }}
+//                           />
+//                         </div>
+//                       ) : (
+//                         <textarea
+//                           value={formValues.about_company || ""}
+//                           onChange={(e) =>
+//                             setFormValues((prev) => ({
+//                               ...prev,
+//                               about_company: e.target.value,
+//                             }))
+//                           }
+//                           className="w-full min-h-[220px] px-3.5 py-2.5 border border-slate-300 rounded-xl text-sm font-mono focus:ring-2 focus:ring-blue-100 focus:border-blue-400 transition-colors resize-y bg-slate-50"
+//                           placeholder="<p>Write HTML here...</p>"
+//                         />
+//                       )}
+
+//                       <p className="mt-2 text-xs text-slate-500">
+//                         Use the rich text editor for formatting, or switch to
+//                         HTML for direct source editing.
+//                       </p>
+//                     </div>
+
+//                     <div className="border-t border-slate-100 pt-5 grid grid-cols-1 sm:grid-cols-2 gap-5">
+//                       <div>
+//                         <FieldLabel required>Company status</FieldLabel>
+//                         <select
+//                           name="company_status"
+//                           value={formValues.company_status || "active"}
+//                           onChange={handleInputChange}
+//                           className="w-full px-3.5 py-2.5 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-100 focus:border-blue-400 transition-colors"
+//                         >
+//                           {COMPANY_STATUS_OPTIONS.map((opt) => (
+//                             <option key={opt.value} value={opt.value}>
+//                               {opt.label}
+//                             </option>
+//                           ))}
+//                         </select>
+//                       </div>
+
+//                       <div>
+//                         <FieldLabel>Trending</FieldLabel>
+//                         <div className="flex items-center gap-3 pt-1.5">
+//                           <Toggle
+//                             name="is_trending"
+//                             checked={formValues.is_trending}
+//                             onChange={handleInputChange}
+//                           />
+//                           <span className="text-sm text-slate-600">
+//                             {formValues.is_trending
+//                               ? "Shown in trending companies"
+//                               : "Not marked as trending"}
+//                           </span>
+//                         </div>
+//                       </div>
+//                     </div>
+//                   </div>
+//                 )}
+
+//                 {/* ─── RELATIONS ────────────────────────────────── */}
+//                 {activeTab === "relations" && (
+//                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+//                     <div className="sm:col-span-2">
+//                       <FieldLabel>Company user</FieldLabel>
+//                       <div className="flex items-center gap-2.5 text-sm text-slate-700 py-2.5 px-3.5 bg-slate-50 rounded-lg border border-slate-200">
+//                         <MdPerson size={16} className="text-slate-400" />
+//                         {formValues.company_user_email || "—"}
+//                         <span className="ml-auto text-[11px] text-slate-400">
+//                           Read-only
+//                         </span>
+//                       </div>
+//                     </div>
+
+//                     <div>
+//                       <FieldLabel>Industry</FieldLabel>
+//                       <select
+//                         name="industry_id"
+//                         value={formValues.industry_id || ""}
+//                         onChange={handleInputChange}
+//                         className="w-full px-3.5 py-2.5 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-100 focus:border-blue-400 transition-colors"
+//                         disabled={loadingData}
+//                       >
+//                         <option value="">
+//                           {loadingData ? "Loading..." : "Select an industry"}
+//                         </option>
+//                         {industryOptions.map((opt) => (
+//                           <option key={opt.value} value={opt.value}>
+//                             {opt.label}
+//                           </option>
+//                         ))}
+//                       </select>
+//                     </div>
+
+//                     <div>
+//                       <FieldLabel>Sub-industry</FieldLabel>
+//                       <select
+//                         name="sub_industry_id"
+//                         value={formValues.sub_industry_id || ""}
+//                         onChange={handleInputChange}
+//                         className="w-full px-3.5 py-2.5 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-100 focus:border-blue-400 transition-colors"
+//                         disabled={loadingData}
+//                       >
+//                         <option value="">
+//                           {loadingData ? "Loading..." : "Select a sub-industry"}
+//                         </option>
+//                         {subIndustryOptions.map((opt) => (
+//                           <option key={opt.value} value={opt.value}>
+//                             {opt.label}
+//                           </option>
+//                         ))}
+//                       </select>
+//                     </div>
+
+//                     <div>
+//                       <FieldLabel>Company size</FieldLabel>
+//                       <select
+//                         name="company_size_id"
+//                         value={formValues.company_size_id || ""}
+//                         onChange={handleInputChange}
+//                         className="w-full px-3.5 py-2.5 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-100 focus:border-blue-400 transition-colors"
+//                         disabled={loadingData}
+//                       >
+//                         <option value="">
+//                           {loadingData ? "Loading..." : "Select a company size"}
+//                         </option>
+//                         {sizeOptions.map((opt) => (
+//                           <option key={opt.value} value={opt.value}>
+//                             {opt.label}
+//                           </option>
+//                         ))}
+//                       </select>
+//                     </div>
+//                   </div>
+//                 )}
+
+//                 {/* ─── DOCUMENTS ────────────────────────────────── */}
+//                 {activeTab === "documents" && (
+//                   <div className="space-y-6">
+//                     {/* ── Registration document ── */}
+//                     <div className="flex flex-col sm:flex-row sm:items-center gap-4 pb-5 border-b border-slate-100">
+//                       <div className="flex-1">
+//                         <FieldLabel>Registration document type</FieldLabel>
+//                         <ReadOnlyValue>
+//                           {formValues.company_register_document_type}
+//                         </ReadOnlyValue>
+//                       </div>
+//                       <div className="flex-1">
+//                         <FieldLabel>Registration document</FieldLabel>
+//                         {formValues.company_register_document ? (
+//                           <a
+//                             href={getImageUrl(
+//                               formValues.company_register_document,
+//                             )}
+//                             target="_blank"
+//                             rel="noopener noreferrer"
+//                             className="inline-flex items-center gap-2 text-sm text-blue-600 hover:underline py-2.5 px-3.5 bg-blue-50 rounded-lg"
+//                           >
+//                             <MdDescription size={16} />
+//                             {formValues.company_register_document
+//                               .split("/")
+//                               .pop()}
+//                           </a>
+//                         ) : (
+//                           <ReadOnlyValue>No document</ReadOnlyValue>
+//                         )}
+//                       </div>
+//                     </div>
+
+//                     {/* ── GST Number (NEW) ── */}
+//                     <div className="flex flex-col sm:flex-row sm:items-center gap-4 pb-5 border-b border-slate-100">
+//                       <div className="flex-1">
+//                         <FieldLabel>GST Number</FieldLabel>
+//                         <div className="flex items-center gap-2 text-sm text-slate-700 py-2.5 px-3.5 bg-slate-50 rounded-lg border border-slate-200">
+//                           <MdReceiptLong size={16} className="text-slate-400" />
+//                           {formValues.gst_number || "—"}
+//                         </div>
+//                       </div>
+//                       <div className="flex-1">
+//                         {/* Placeholder to keep alignment with other rows */}
+//                       </div>
+//                     </div>
+
+//                     {/* ── PAN card ── */}
+//                     <div className="flex flex-col sm:flex-row gap-5 pb-5 border-b border-slate-100">
+//                       <div className="flex-1">
+//                         <FieldLabel>PAN card number</FieldLabel>
+//                         <div className="flex items-center gap-2 font-mono text-sm bg-slate-50 px-3 py-2 rounded-lg border border-slate-200">
+//                           <MdCreditCard size={16} className="text-slate-400" />
+//                           {formValues.company_pan_card || "—"}
+//                         </div>
+//                       </div>
+//                       <div>
+//                         <FieldLabel>PAN card image</FieldLabel>
+//                         {renderDocPreview(
+//                           formValues.company_pan_card_image,
+//                           "PAN card",
+//                         )}
+//                       </div>
+//                     </div>
+
+//                     {/* ── Owner Aadhar ── */}
+//                     <div className="flex flex-col sm:flex-row gap-5">
+//                       <div className="flex-1">
+//                         <FieldLabel>Owner Aadhar number</FieldLabel>
+//                         <div className="flex items-center gap-2 font-mono text-sm bg-slate-50 px-3 py-2 rounded-lg border border-slate-200">
+//                           <MdPermIdentity
+//                             size={16}
+//                             className="text-slate-400"
+//                           />
+//                           {formValues.owner_adharcard || "—"}
+//                         </div>
+//                       </div>
+//                       <div>
+//                         <FieldLabel>Owner Aadhar image</FieldLabel>
+//                         {renderDocPreview(
+//                           formValues.owner_adharcard_image,
+//                           "Aadhar card",
+//                         )}
+//                       </div>
+//                     </div>
+//                   </div>
+//                 )}
+
+//                 {/* ─── MEDIA ────────────────────────────────────── */}
+//                 {activeTab === "media" && (
+//                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+//                     <div>
+//                       <FieldLabel>Logo</FieldLabel>
+//                       <div className="flex flex-col items-start gap-3">
+//                         <div className="w-28 h-28 rounded-xl border border-slate-200 bg-slate-50 flex items-center justify-center overflow-hidden">
+//                           {formValues.logo ? (
+//                             <img
+//                               src={
+//                                 formValues.logo.startsWith("blob:")
+//                                   ? formValues.logo
+//                                   : getImageUrl(formValues.logo)
+//                               }
+//                               alt="Logo"
+//                               className="w-full h-full object-cover"
+//                               onError={(e) => {
+//                                 e.target.style.display = "none";
+//                               }}
+//                             />
+//                           ) : (
+//                             <MdApartment size={28} className="text-slate-300" />
+//                           )}
+//                         </div>
+//                         <label className="inline-flex items-center gap-2 px-3.5 py-2 bg-blue-50 hover:bg-blue-100 text-blue-700 text-sm font-medium rounded-lg cursor-pointer transition-colors">
+//                           <MdCloudUpload size={16} />
+//                           {formValues.logo ? "Change logo" : "Upload logo"}
+//                           <input
+//                             type="file"
+//                             accept="image/*"
+//                             onChange={(e) => handleFileChange(e, "logo")}
+//                             className="hidden"
+//                           />
+//                         </label>
+//                       </div>
+//                     </div>
+
+//                     <div>
+//                       <FieldLabel>Banner image</FieldLabel>
+//                       <div className="flex flex-col items-start gap-3">
+//                         <div className="w-full sm:w-64 h-28 rounded-xl border border-slate-200 bg-slate-50 flex items-center justify-center overflow-hidden">
+//                           {formValues.banner_image ? (
+//                             <img
+//                               src={
+//                                 formValues.banner_image.startsWith("blob:")
+//                                   ? formValues.banner_image
+//                                   : getImageUrl(formValues.banner_image)
+//                               }
+//                               alt="Banner"
+//                               className="w-full h-full object-cover"
+//                               onError={(e) => {
+//                                 e.target.style.display = "none";
+//                               }}
+//                             />
+//                           ) : (
+//                             <MdImage size={28} className="text-slate-300" />
+//                           )}
+//                         </div>
+//                         <label className="inline-flex items-center gap-2 px-3.5 py-2 bg-blue-50 hover:bg-blue-100 text-blue-700 text-sm font-medium rounded-lg cursor-pointer transition-colors">
+//                           <MdCloudUpload size={16} />
+//                           {formValues.banner_image
+//                             ? "Change banner"
+//                             : "Upload banner"}
+//                           <input
+//                             type="file"
+//                             accept="image/*"
+//                             onChange={(e) =>
+//                               handleFileChange(e, "banner_image")
+//                             }
+//                             className="hidden"
+//                           />
+//                         </label>
+//                       </div>
+//                     </div>
+//                   </div>
+//                 )}
+
+//                 {/* ─── ACTIVITY ─────────────────────────────────── */}
+//                 {activeTab === "activity" && (
+//                   <div className="space-y-6">
+//                     <div>
+//                       <FieldLabel>Profile completion</FieldLabel>
+//                       <div className="flex items-center gap-4 mb-1">
+//                         <div className="flex-1 h-2.5 bg-slate-100 rounded-full overflow-hidden">
+//                           <motion.div
+//                             initial={{ width: 0 }}
+//                             animate={{ width: `${completionPct}%` }}
+//                             transition={{ duration: 0.8, ease: "easeOut" }}
+//                             className={`h-full rounded-full ${
+//                               completionPct === 100
+//                                 ? "bg-emerald-500"
+//                                 : completionPct >= 50
+//                                   ? "bg-blue-500"
+//                                   : "bg-amber-500"
+//                             }`}
+//                           />
+//                         </div>
+//                         <span className="text-sm font-semibold text-slate-700 w-12 text-right">
+//                           {completionPct}%
+//                         </span>
+//                       </div>
+//                       <p className="text-xs text-slate-400">
+//                         Score: {formValues.profile_completion}/100 · Last
+//                         calculated{" "}
+//                         {formValues.last_completion_calculated_at
+//                           ? formatDate(
+//                               parseApiDate(
+//                                 formValues.last_completion_calculated_at,
+//                               ),
+//                             )
+//                           : "—"}
+//                       </p>
+//                     </div>
+
+//                     <div className="border-t border-slate-100 pt-5">
+//                       <div className="relative pl-6">
+//                         <div className="absolute left-[7px] top-1 bottom-1 w-px bg-slate-200" />
+
+//                         <div className="relative pb-6">
+//                           <div className="absolute -left-6 top-0.5 w-3.5 h-3.5 rounded-full bg-blue-500 ring-4 ring-blue-100" />
+//                           <p className="text-sm font-semibold text-slate-700">
+//                             Created
+//                           </p>
+//                           <p className="text-sm text-slate-500 mt-0.5">
+//                             {formValues.created_by_name || "—"}
+//                           </p>
+//                           <p className="text-xs text-slate-400 mt-0.5">
+//                             {formValues.created_at
+//                               ? formatDate(formValues.created_at)
+//                               : "—"}
+//                           </p>
+//                         </div>
+
+//                         <div className="relative">
+//                           <div className="absolute -left-6 top-0.5 w-3.5 h-3.5 rounded-full bg-emerald-500 ring-4 ring-emerald-100" />
+//                           <p className="text-sm font-semibold text-slate-700">
+//                             Last updated
+//                           </p>
+//                           <p className="text-sm text-slate-500 mt-0.5">
+//                             {formValues.updated_by_name || "—"}
+//                           </p>
+//                           <p className="text-xs text-slate-400 mt-0.5">
+//                             {formValues.updated_at
+//                               ? formatDate(formValues.updated_at)
+//                               : "—"}
+//                           </p>
+//                         </div>
+//                       </div>
+//                     </div>
+//                   </div>
+//                 )}
+//               </motion.div>
+//             </AnimatePresence>
+//           </div>
+//         </div>
+
+//         {/* Mobile-only cancel button, since header hides it on small screens */}
+//         <button
+//           type="button"
+//           onClick={() => navigate("/companies")}
+//           className="sm:hidden mt-4 w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-600 text-sm font-medium rounded-lg transition-colors"
+//         >
+//           <MdCancel size={16} />
+//           Cancel
+//         </button>
 //       </div>
+
+//       {/* ─── Delete confirmation modal ──────────────────────────── */}
+//       <AnimatePresence>
+//         {isDeleteModalOpen && (
+//           <motion.div
+//             initial={{ opacity: 0 }}
+//             animate={{ opacity: 1 }}
+//             exit={{ opacity: 0 }}
+//             className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 px-4"
+//             onClick={() => !deleteLoading && setIsDeleteModalOpen(false)}
+//           >
+//             <motion.div
+//               initial={{ opacity: 0, scale: 0.97, y: 8 }}
+//               animate={{ opacity: 1, scale: 1, y: 0 }}
+//               exit={{ opacity: 0, scale: 0.97, y: 8 }}
+//               transition={{ duration: 0.18 }}
+//               className="w-full max-w-sm rounded-2xl bg-white shadow-2xl"
+//               onClick={(e) => e.stopPropagation()}
+//             >
+//               <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100">
+//                 <div className="flex items-center gap-2.5">
+//                   <div className="p-2 rounded-full bg-red-50">
+//                     <MdWarning size={18} className="text-red-500" />
+//                   </div>
+//                   <h3 className="text-base font-semibold text-slate-800">
+//                     Delete company?
+//                   </h3>
+//                 </div>
+//                 <button
+//                   onClick={() => setIsDeleteModalOpen(false)}
+//                   className="p-1.5 rounded-lg text-slate-400 hover:bg-slate-100 transition-colors"
+//                   disabled={deleteLoading}
+//                 >
+//                   <MdClose size={18} />
+//                 </button>
+//               </div>
+//               <div className="px-5 py-4">
+//                 <p className="text-sm text-slate-600">
+//                   This will permanently remove{" "}
+//                   <span className="font-medium text-slate-800">{heroName}</span>{" "}
+//                   and its data. This action cannot be undone.
+//                 </p>
+//               </div>
+//               <div className="flex justify-end gap-2.5 px-5 py-4 border-t border-slate-100">
+//                 <button
+//                   onClick={() => setIsDeleteModalOpen(false)}
+//                   disabled={deleteLoading}
+//                   className="px-3.5 py-2 rounded-lg text-sm font-medium text-slate-600 bg-slate-100 hover:bg-slate-200 transition-colors"
+//                 >
+//                   Keep company
+//                 </button>
+//                 <button
+//                   onClick={handleDelete}
+//                   disabled={deleteLoading}
+//                   className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-sm font-semibold text-white bg-red-600 hover:bg-red-700 transition-colors disabled:opacity-60"
+//                 >
+//                   {deleteLoading && (
+//                     <span className="w-3.5 h-3.5 border-2 border-white/60 border-t-transparent rounded-full animate-spin" />
+//                   )}
+//                   {deleteLoading ? "Deleting..." : "Delete company"}
+//                 </button>
+//               </div>
+//             </motion.div>
+//           </motion.div>
+//         )}
+//       </AnimatePresence>
 //     </div>
 //   );
 // };
 
 // export default EditCompany;
+
 
 import React, { useState, useEffect, useMemo } from "react";
 import { useNavigate, useParams } from "react-router-dom";
@@ -1412,7 +1733,6 @@ const EditCompany = () => {
   const [deleteLoading, setDeleteLoading] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("overview");
-  const [aboutCompanyMode, setAboutCompanyMode] = useState("rich");
   const [initialData, setInitialData] = useState(null);
   const [editItem, setEditItem] = useState(null);
   const [fetchLoading, setFetchLoading] = useState(true);
@@ -1849,10 +2169,7 @@ const EditCompany = () => {
         <button
           type="button"
           onClick={() =>
-            window.open(
-              path.startsWith("blob:") ? path : getImageUrl(path),
-              "_blank",
-            )
+            window.open(path.startsWith("blob:") ? path : getImageUrl(path), "_blank")
           }
           className="absolute inset-0 bg-slate-900/0 group-hover:bg-slate-900/50 rounded-lg flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-200"
         >
@@ -2074,11 +2391,7 @@ const EditCompany = () => {
                     <motion.span
                       layoutId="edit-company-tab-underline"
                       className="absolute left-2 right-2 -bottom-px h-0.5 bg-blue-600 rounded-full"
-                      transition={{
-                        type: "spring",
-                        stiffness: 500,
-                        damping: 35,
-                      }}
+                      transition={{ type: "spring", stiffness: 500, damping: 35 }}
                     />
                   )}
                 </button>
@@ -2165,100 +2478,56 @@ const EditCompany = () => {
 
                     <div>
                       <FieldLabel>About company</FieldLabel>
-
-                      <div className="mb-3 flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-100 p-1 w-fit shadow-sm">
-                        {[
-                          { id: "rich", label: "Text" },
-                          { id: "html", label: "HTML" },
-                        ].map((tab) => (
-                          <button
-                            key={tab.id}
-                            type="button"
-                            onClick={() => setAboutCompanyMode(tab.id)}
-                            className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
-                              aboutCompanyMode === tab.id
-                                ? "bg-white text-blue-700 shadow-sm ring-1 ring-blue-100"
-                                : "text-slate-600 hover:text-slate-800"
-                            }`}
-                          >
-                            {tab.label}
-                          </button>
-                        ))}
-                      </div>
-
-                      {aboutCompanyMode === "rich" ? (
-                        <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
-                          <Editor
-                            tinymceScriptSrc="/tinymce/tinymce.min.js"
-                            licenseKey="gpl"
-                            value={formValues.about_company || ""}
-                            onEditorChange={(content) =>
-                              setFormValues((prev) => ({
-                                ...prev,
-                                about_company: content,
-                              }))
-                            }
-                            init={{
-                              height: 320,
-                              menubar: false,
-                              statusbar: true,
-                              plugins: [
-                                "advlist",
-                                "autolink",
-                                "lists",
-                                "link",
-                                "image",
-                                "charmap",
-                                "preview",
-                                "anchor",
-                                "searchreplace",
-                                "visualblocks",
-                                "code",
-                                "fullscreen",
-                                "insertdatetime",
-                                "media",
-                                "table",
-                                "help",
-                                "wordcount",
-                              ],
-                              toolbar:
-                                "undo redo | styleselect | bold italic underline strikethrough | " +
-                                "fontfamily fontsize | forecolor backcolor | " +
-                                "alignleft aligncenter alignright alignjustify | " +
-                                "bullist numlist outdent indent | link image table | " +
-                                "removeformat code fullscreen | help",
-                              content_style:
-                                "body { font-family: 'Inter', Arial, sans-serif; font-size: 14px; line-height: 1.7; } p { margin: 0 0 10px; }",
-                              placeholder: "Write your company profile here...",
-                              images_upload_handler: (blobInfo) =>
-                                new Promise((resolve, reject) => {
-                                  const reader = new FileReader();
-                                  reader.onload = () => resolve(reader.result);
-                                  reader.onerror = () =>
-                                    reject("Image upload failed");
-                                  reader.readAsDataURL(blobInfo.blob());
-                                }),
-                            }}
-                          />
-                        </div>
-                      ) : (
-                        <textarea
-                          value={formValues.about_company || ""}
-                          onChange={(e) =>
-                            setFormValues((prev) => ({
-                              ...prev,
-                              about_company: e.target.value,
-                            }))
-                          }
-                          className="w-full min-h-[220px] px-3.5 py-2.5 border border-slate-300 rounded-xl text-sm font-mono focus:ring-2 focus:ring-blue-100 focus:border-blue-400 transition-colors resize-y bg-slate-50"
-                          placeholder="<p>Write HTML here...</p>"
-                        />
-                      )}
-
-                      <p className="mt-2 text-xs text-slate-500">
-                        Use the rich text editor for formatting, or switch to
-                        HTML for direct source editing.
-                      </p>
+                      <Editor
+                        tinymceScriptSrc="/tinymce/tinymce.min.js"
+                        licenseKey="gpl"
+                        value={formValues.about_company || ""}
+                        onEditorChange={(content) =>
+                          setFormValues((prev) => ({
+                            ...prev,
+                            about_company: content,
+                          }))
+                        }
+                        init={{
+                          height: 280,
+                          menubar: false,
+                          plugins: [
+                            "advlist",
+                            "autolink",
+                            "lists",
+                            "link",
+                            "image",
+                            "charmap",
+                            "preview",
+                            "anchor",
+                            "searchreplace",
+                            "visualblocks",
+                            "code",
+                            "fullscreen",
+                            "insertdatetime",
+                            "media",
+                            "table",
+                            "help",
+                            "wordcount",
+                          ],
+                          toolbar:
+                            "undo redo | blocks | bold italic underline forecolor | " +
+                            "alignleft aligncenter alignright alignjustify | " +
+                            "bullist numlist outdent indent | link image table | " +
+                            "removeformat code | help",
+                          content_style:
+                            "body { font-family:Helvetica,Arial,sans-serif; font-size:14px }",
+                          image_advtab: true,
+                          images_upload_handler: (blobInfo) =>
+                            new Promise((resolve, reject) => {
+                              const reader = new FileReader();
+                              reader.onload = () => resolve(reader.result);
+                              reader.onerror = () =>
+                                reject("Image upload failed");
+                              reader.readAsDataURL(blobInfo.blob());
+                            }),
+                        }}
+                      />
                     </div>
 
                     <div className="border-t border-slate-100 pt-5 grid grid-cols-1 sm:grid-cols-2 gap-5">
@@ -2443,10 +2712,7 @@ const EditCompany = () => {
                       <div className="flex-1">
                         <FieldLabel>Owner Aadhar number</FieldLabel>
                         <div className="flex items-center gap-2 font-mono text-sm bg-slate-50 px-3 py-2 rounded-lg border border-slate-200">
-                          <MdPermIdentity
-                            size={16}
-                            className="text-slate-400"
-                          />
+                          <MdPermIdentity size={16} className="text-slate-400" />
                           {formValues.owner_adharcard || "—"}
                         </div>
                       </div>
@@ -2527,9 +2793,7 @@ const EditCompany = () => {
                           <input
                             type="file"
                             accept="image/*"
-                            onChange={(e) =>
-                              handleFileChange(e, "banner_image")
-                            }
+                            onChange={(e) => handleFileChange(e, "banner_image")}
                             className="hidden"
                           />
                         </label>
@@ -2666,7 +2930,9 @@ const EditCompany = () => {
               <div className="px-5 py-4">
                 <p className="text-sm text-slate-600">
                   This will permanently remove{" "}
-                  <span className="font-medium text-slate-800">{heroName}</span>{" "}
+                  <span className="font-medium text-slate-800">
+                    {heroName}
+                  </span>{" "}
                   and its data. This action cannot be undone.
                 </p>
               </div>
