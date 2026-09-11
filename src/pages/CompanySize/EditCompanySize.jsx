@@ -668,7 +668,7 @@ const EditCompanySize = () => {
                 )}
               </div>
 
-              <div className="sm:col-span-2">
+              {/* <div className="sm:col-span-2">
                 <FieldLabel>Slug (URL identifier)</FieldLabel>
                 <div className="relative">
                   <MdLink
@@ -687,7 +687,7 @@ const EditCompanySize = () => {
                 <p className="text-xs text-slate-500 mt-1.5">
                   Leave empty to auto-generate from the name.
                 </p>
-              </div>
+              </div> */}
             </div>
           </div>
         );

@@ -1,5 +1,6 @@
-// import React, { useEffect, useState } from "react";
+// import React, { useEffect, useState, useRef } from "react";
 // import { useLocation, useNavigate, useParams } from "react-router-dom";
+// import { Editor } from "@tinymce/tinymce-react";
 // import { motion, AnimatePresence } from "framer-motion";
 // import {
 //   MdArrowBack,
@@ -175,6 +176,158 @@
 //   </label>
 // );
 
+// const RichTextEditorField = ({ value, onChange, height = 350 }) => {
+//   const [editorMode, setEditorMode] = useState("text");
+//   const editorRef = useRef(null);
+
+//   const syncToEditor = (nextValue) => {
+//     if (
+//       editorRef.current &&
+//       typeof editorRef.current.setContent === "function"
+//     ) {
+//       editorRef.current.setContent(nextValue || "", { format: "html" });
+//     }
+//   };
+
+//   const handleModeChange = (nextMode) => {
+//     if (nextMode === "html" && editorRef.current) {
+//       const currentHtml = editorRef.current.getContent();
+//       if (currentHtml !== value) {
+//         onChange(currentHtml);
+//       }
+//     }
+
+//     if (nextMode === "text") {
+//       syncToEditor(value || "");
+//     }
+
+//     setEditorMode(nextMode);
+//   };
+
+//   return (
+//     <div className="space-y-3">
+//       <div className="flex gap-1 p-1 w-fit bg-slate-100 rounded-lg">
+//         {["text", "html"].map((mode) => (
+//           <button
+//             key={mode}
+//             type="button"
+//             onClick={() => handleModeChange(mode)}
+//             className={`px-3 py-1.5 text-sm font-medium rounded-md transition-all ${
+//               editorMode === mode
+//                 ? "bg-white text-blue-600 shadow-sm"
+//                 : "text-slate-600 hover:text-slate-900"
+//             }`}
+//           >
+//             {mode === "text" ? "Text" : "HTML"}
+//           </button>
+//         ))}
+//       </div>
+
+//       {editorMode === "text" ? (
+//         <div className="border border-slate-200 rounded-xl overflow-hidden">
+//           <Editor
+//             tinymceScriptSrc="/tinymce/tinymce.min.js"
+//             licenseKey="gpl"
+//             value={value || ""}
+//             onEditorChange={onChange}
+//             onInit={(evt, editor) => {
+//               editorRef.current = editor;
+//               editor.setContent(value || "", { format: "html" });
+//             }}
+//             init={{
+//               height,
+//               menubar: false,
+//               statusbar: true,
+//               plugins: [
+//                 "advlist",
+//                 "autolink",
+//                 "lists",
+//                 "link",
+//                 "image",
+//                 "charmap",
+//                 "preview",
+//                 "anchor",
+//                 "searchreplace",
+//                 "visualblocks",
+//                 "code",
+//                 "fullscreen",
+//                 "insertdatetime",
+//                 "media",
+//                 "table",
+//                 "help",
+//                 "wordcount",
+//               ],
+//               toolbar:
+//                 "undo redo | blocks | bold italic underline strikethrough | " +
+//                 "alignleft aligncenter alignright alignjustify | " +
+//                 "bullist numlist outdent indent | link image table | " +
+//                 "forecolor backcolor | removeformat code | help",
+//               content_style:
+//                 "body { font-family: 'Inter', sans-serif; font-size: 14px; line-height: 1.7; } p { margin: 0 0 10px; } h1, h2, h3, h4, h5, h6 { margin: 0 0 12px; line-height: 1.3; }",
+//               placeholder: "Write the job description here…",
+//               forced_root_block: "p",
+//               verify_html: false,
+//               cleanup: false,
+//             }}
+//           />
+//         </div>
+//       ) : (
+//         <textarea
+//           value={value || ""}
+//           onChange={(event) => onChange(event.target.value)}
+//           className="w-full min-h-[350px] px-4 py-3 bg-slate-950 text-slate-100 border border-slate-200 rounded-xl text-sm font-mono placeholder-slate-400 outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 focus:bg-slate-950 transition-all resize-y"
+//           spellCheck={false}
+//           rows={16}
+//           placeholder="<!-- Write HTML here -->"
+//         />
+//       )}
+//     </div>
+//   );
+// };
+
+// const RichTextViewer = ({ value }) => {
+//   const [viewMode, setViewMode] = useState("text");
+//   const content = value || "";
+
+//   return (
+//     <div className="space-y-3">
+//       <div className="flex gap-1 p-1 w-fit bg-slate-100 rounded-lg">
+//         {["text", "html"].map((mode) => (
+//           <button
+//             key={mode}
+//             type="button"
+//             onClick={() => setViewMode(mode)}
+//             className={`px-3 py-1.5 text-sm font-medium rounded-md transition-all ${
+//               viewMode === mode
+//                 ? "bg-white text-blue-600 shadow-sm"
+//                 : "text-slate-600 hover:text-slate-900"
+//             }`}
+//           >
+//             {mode === "text" ? "Text" : "HTML"}
+//           </button>
+//         ))}
+//       </div>
+
+//       {viewMode === "text" ? (
+//         <div className="p-4 bg-slate-50 border border-slate-200 rounded-xl">
+//           {content ? (
+//             <div
+//               className="prose prose-sm max-w-none text-slate-700 [&_a]:text-blue-600 [&_a]:underline [&_img]:rounded-lg [&_table]:border [&_table]:border-slate-300 [&_td]:border [&_td]:border-slate-300 [&_td]:p-2 [&_th]:border [&_th]:border-slate-300 [&_th]:p-2"
+//               dangerouslySetInnerHTML={{ __html: content }}
+//             />
+//           ) : (
+//             <span className="text-slate-400">—</span>
+//           )}
+//         </div>
+//       ) : (
+//         <pre className="whitespace-pre-wrap break-words p-4 font-mono text-xs text-slate-700 bg-slate-950/5 border border-slate-200 rounded-xl min-h-[120px]">
+//           {content || ""}
+//         </pre>
+//       )}
+//     </div>
+//   );
+// };
+
 // const ReadOnlyValue = ({ children }) => (
 //   <div className="text-sm text-slate-700 py-2 px-3 bg-slate-50 rounded-lg border border-slate-200">
 //     {children || "—"}
@@ -219,7 +372,9 @@
 //     return "add";
 //   };
 
-//   const [mode, setMode] = useState(() => resolveModeFromPath(location.pathname));
+//   const [mode, setMode] = useState(() =>
+//     resolveModeFromPath(location.pathname),
+//   );
 //   const [pageLoading, setPageLoading] = useState(() => {
 //     const initialMode = resolveModeFromPath(location.pathname);
 //     return initialMode === "edit" || initialMode === "view";
@@ -266,7 +421,10 @@
 //               .map((c) => ({
 //                 ...c,
 //                 id: toNumberOrEmpty(
-//                   c.id ?? c.company_id ?? c.Company?.id ?? c.Company?.company_id,
+//                   c.id ??
+//                     c.company_id ??
+//                     c.Company?.id ??
+//                     c.Company?.company_id,
 //                 ),
 //               }))
 //               .filter((c) => c.id !== "")
@@ -274,7 +432,8 @@
 //         setCompanies(normalizedCompanies);
 
 //         // Job Types
-//         const jobTypeData = jobTypeResponse?.data?.data || jobTypeResponse?.data || [];
+//         const jobTypeData =
+//           jobTypeResponse?.data?.data || jobTypeResponse?.data || [];
 //         const normalizedJobTypes = Array.isArray(jobTypeData)
 //           ? jobTypeData
 //               .filter(
@@ -379,7 +538,9 @@
 //         item.company?.company_id ??
 //         item.company?.id,
 //     );
-//     const jobTypeId = toNumberOrEmpty(item.jobtype_id ?? item.JobType?.jobtype_id);
+//     const jobTypeId = toNumberOrEmpty(
+//       item.jobtype_id ?? item.JobType?.jobtype_id,
+//     );
 //     const workplaceTypeId = toNumberOrEmpty(
 //       item.workplacetype_id ?? item.WorkplaceType?.workplacetype_id,
 //     );
@@ -405,9 +566,11 @@
 //       jobtype_id: jobTypeId,
 //       jobtype_name: item.JobType?.name || item.jobtype_name || "",
 //       workplacetype_id: workplaceTypeId,
-//       workplacetype_name: item.WorkplaceType?.name || item.workplacetype_name || "",
+//       workplacetype_name:
+//         item.WorkplaceType?.name || item.workplacetype_name || "",
 //       functionrole_id: functionRoleId,
-//       functionrole_name: item.FunctionRole?.name || item.functionrole_name || "",
+//       functionrole_name:
+//         item.FunctionRole?.name || item.functionrole_name || "",
 //       experience_min: item.experience_min ?? "",
 //       experience_max: item.experience_max ?? "",
 //       experience_type: item.experience_type || "experience",
@@ -422,7 +585,8 @@
 //       is_trending: toBoolean(item.is_trending),
 //       is_status: toBoolean(item.is_status),
 //       daily_application_summary: toBoolean(item.daily_application_summary),
-//       notify_matching_type: item.notify_matching_type || "All matching applicants",
+//       notify_matching_type:
+//         item.notify_matching_type || "All matching applicants",
 //       prioritize_women: toBoolean(item.prioritize_women),
 //       schedule_date: item.schedule_date || null,
 //       published_at: item.published_at || null,
@@ -464,7 +628,9 @@
 
 //   useEffect(() => {
 //     if (!data?.company_id) return;
-//     const company = companies.find((c) => Number(c.id) === Number(data.company_id));
+//     const company = companies.find(
+//       (c) => Number(c.id) === Number(data.company_id),
+//     );
 //     if (!company) return;
 //     const companyName =
 //       company.company_name || company.CompanyUser?.company_user_email || "";
@@ -606,7 +772,8 @@
 //       custom: (value) => {
 //         if (value !== "" && value !== null && value !== undefined) {
 //           const num = Number(value);
-//           if (Number.isNaN(num)) return "Experience minimum must be a valid number";
+//           if (Number.isNaN(num))
+//             return "Experience minimum must be a valid number";
 //           if (num < 0) return "Experience minimum cannot be negative";
 //           if (num > 50) return "Experience minimum cannot exceed 50 years";
 //         }
@@ -617,7 +784,8 @@
 //       custom: (value, formData) => {
 //         if (value !== "" && value !== null && value !== undefined) {
 //           const num = Number(value);
-//           if (Number.isNaN(num)) return "Experience maximum must be a valid number";
+//           if (Number.isNaN(num))
+//             return "Experience maximum must be a valid number";
 //           if (num < 0) return "Experience maximum cannot be negative";
 //           if (num > 50) return "Experience maximum cannot exceed 50 years";
 //           if (
@@ -667,7 +835,10 @@
 //   const validateField = (name, value, allValues) => {
 //     const rules = getValidationRules()[name];
 //     if (!rules) return null;
-//     if (rules.required && (value === "" || value === null || value === undefined)) {
+//     if (
+//       rules.required &&
+//       (value === "" || value === null || value === undefined)
+//     ) {
 //       return rules.requiredMessage || `${name} is required`;
 //     }
 //     if (rules.minLength && value?.length < rules.minLength) {
@@ -713,9 +884,13 @@
 //         workplacetype_id: toNumberOrEmpty(formValues.workplacetype_id) || null,
 //         functionrole_id: toNumberOrEmpty(formValues.functionrole_id) || null,
 //         experience_min:
-//           formValues.experience_min !== "" ? Number(formValues.experience_min) : null,
+//           formValues.experience_min !== ""
+//             ? Number(formValues.experience_min)
+//             : null,
 //         experience_max:
-//           formValues.experience_max !== "" ? Number(formValues.experience_max) : null,
+//           formValues.experience_max !== ""
+//             ? Number(formValues.experience_max)
+//             : null,
 //         experience_type: formValues.experience_type || "experience",
 //         salary_min:
 //           formValues.salary_min !== "" ? Number(formValues.salary_min) : null,
@@ -732,8 +907,14 @@
 //         daily_application_summary: true,
 //         notify_matching_type: "All matching applicants",
 //         prioritize_women: false,
-//         schedule_date: formValues.job_status === "published" ? new Date().toISOString() : null,
-//         published_at: formValues.job_status === "published" ? new Date().toISOString() : null,
+//         schedule_date:
+//           formValues.job_status === "published"
+//             ? new Date().toISOString()
+//             : null,
+//         published_at:
+//           formValues.job_status === "published"
+//             ? new Date().toISOString()
+//             : null,
 //         slug: generateSlug(formValues.title.trim()),
 //       };
 
@@ -776,7 +957,9 @@
 //       navigate("/jobs");
 //     } catch (error) {
 //       console.error("Delete error:", error);
-//       showError(error?.response?.data?.message || error?.message || "Failed to delete");
+//       showError(
+//         error?.response?.data?.message || error?.message || "Failed to delete",
+//       );
 //     } finally {
 //       setDeleteLoading(false);
 //       setIsDeleteModalOpen(false);
@@ -811,7 +994,12 @@
 //       value: Number(f.id),
 //       label: f.name || "",
 //     }));
-//     return { companyOptions, jobTypeOptions, workplaceTypeOptions, functionRoleOptions };
+//     return {
+//       companyOptions,
+//       jobTypeOptions,
+//       workplaceTypeOptions,
+//       functionRoleOptions,
+//     };
 //   };
 
 //   // ─── Render field based on definition ──────────────────────
@@ -837,11 +1025,22 @@
 //     const error = errors[name];
 //     const isTouched = touched[name];
 
+//     if (mode === "view" && name === "job_description") {
+//       return (
+//         <div key={name} className="mb-4 md:col-span-2">
+//           <FieldLabel>{label}</FieldLabel>
+//           <RichTextViewer value={value} />
+//         </div>
+//       );
+//     }
+
 //     if (mode === "view" && viewRender) {
 //       return (
 //         <div key={name} className="mb-4">
 //           <FieldLabel>{label}</FieldLabel>
-//           <div className="text-sm text-slate-700">{viewRender(value, formValues)}</div>
+//           <div className="text-sm text-slate-700">
+//             {viewRender(value, formValues)}
+//           </div>
 //         </div>
 //       );
 //     }
@@ -875,18 +1074,32 @@
 //         break;
 
 //       case "textarea":
-//         inputElement = (
-//           <textarea
-//             name={name}
-//             value={value}
-//             onChange={handleInputChange}
-//             onBlur={handleBlur}
-//             rows={rows || 4}
-//             placeholder={placeholder}
-//             disabled={disabled}
-//             className={`${commonInputClass} resize-y`}
-//           />
-//         );
+//         if (name === "job_description") {
+//           inputElement = (
+//             <RichTextEditorField
+//               value={value}
+//               onChange={(nextValue) => {
+//                 setFormValues((prev) => ({ ...prev, [name]: nextValue }));
+//                 if (errors[name]) {
+//                   setErrors((prev) => ({ ...prev, [name]: undefined }));
+//                 }
+//               }}
+//             />
+//           );
+//         } else {
+//           inputElement = (
+//             <textarea
+//               name={name}
+//               value={value}
+//               onChange={handleInputChange}
+//               onBlur={handleBlur}
+//               rows={rows || 4}
+//               placeholder={placeholder}
+//               disabled={disabled}
+//               className={`${commonInputClass} resize-y`}
+//             />
+//           );
+//         }
 //         break;
 
 //       case "checkbox":
@@ -910,7 +1123,10 @@
 //         inputElement = (
 //           <div className="flex flex-wrap gap-4 pt-1.5">
 //             {options?.map((opt) => (
-//               <label key={opt.value} className="flex items-center gap-2 text-sm text-slate-700">
+//               <label
+//                 key={opt.value}
+//                 className="flex items-center gap-2 text-sm text-slate-700"
+//               >
 //                 <input
 //                   type="radio"
 //                   name={name}
@@ -1009,7 +1225,14 @@
 //         // description
 //         ["job_description"],
 //         // status
-//         ["job_status", "posting_type", "expiry_date", "auto_renew", "is_trending", "status"],
+//         [
+//           "job_status",
+//           "posting_type",
+//           "expiry_date",
+//           "auto_renew",
+//           "is_trending",
+//           "status",
+//         ],
 //         // activity
 //         ["created_by", "created_at", "updated_by", "updated_at"],
 //       ];
@@ -1025,7 +1248,14 @@
 //       // description
 //       ["job_description"],
 //       // status
-//       ["job_status", "posting_type", "expiry_date", "auto_renew", "is_trending", "status"],
+//       [
+//         "job_status",
+//         "posting_type",
+//         "expiry_date",
+//         "auto_renew",
+//         "is_trending",
+//         "status",
+//       ],
 //       // activity - only in edit/view, not in add
 //     ];
 //   })();
@@ -1096,7 +1326,8 @@
 //               return formatDateTime(row?.[name]);
 //             }
 //             if (name === "created_by" || name === "updated_by") {
-//               const nameFn = name === "created_by" ? getCreatedByName : getUpdatedByName;
+//               const nameFn =
+//                 name === "created_by" ? getCreatedByName : getUpdatedByName;
 //               return nameFn(row);
 //             }
 //             return value || "—";
@@ -1149,7 +1380,9 @@
 //             type: "select",
 //             required: true,
 //             options: companyOptions,
-//             placeholder: loadingDropdowns ? "Loading companies..." : "Select company",
+//             placeholder: loadingDropdowns
+//               ? "Loading companies..."
+//               : "Select company",
 //             disabled: loadingDropdowns,
 //           },
 //           reference_code: {
@@ -1164,7 +1397,9 @@
 //             type: "select",
 //             required: true,
 //             options: jobTypeOptions,
-//             placeholder: loadingDropdowns ? "Loading job types..." : "Select job type",
+//             placeholder: loadingDropdowns
+//               ? "Loading job types..."
+//               : "Select job type",
 //             disabled: loadingDropdowns,
 //           },
 //           workplacetype_id: {
@@ -1173,7 +1408,9 @@
 //             type: "select",
 //             required: true,
 //             options: workplaceTypeOptions,
-//             placeholder: loadingDropdowns ? "Loading workplace types..." : "Select workplace type",
+//             placeholder: loadingDropdowns
+//               ? "Loading workplace types..."
+//               : "Select workplace type",
 //             disabled: loadingDropdowns,
 //           },
 //           functionrole_id: {
@@ -1182,7 +1419,9 @@
 //             type: "select",
 //             required: true,
 //             options: functionRoleOptions,
-//             placeholder: loadingDropdowns ? "Loading function roles..." : "Select function role",
+//             placeholder: loadingDropdowns
+//               ? "Loading function roles..."
+//               : "Select function role",
 //             disabled: loadingDropdowns,
 //           },
 //           experience_min: {
@@ -1323,10 +1562,8 @@
 //     );
 //   }
 
-//  const heroTitle =
-//   mode === "add"
-//     ? "Create New Job"
-//     : formValues.title || "Untitled Job";
+//   const heroTitle =
+//     mode === "add" ? "Create New Job" : formValues.title || "Untitled Job";
 //   const companyName = formValues.company_name || formValues.company_id || "—";
 //   const status = formValues.job_status || "draft";
 //   const isTrending = formValues.is_trending;
@@ -1397,7 +1634,11 @@
 //                   ) : (
 //                     <MdSave size={16} />
 //                   )}
-//                   {loading ? "Saving..." : mode === "edit" ? "Update Job" : "Create Job"}
+//                   {loading
+//                     ? "Saving..."
+//                     : mode === "edit"
+//                       ? "Update Job"
+//                       : "Create Job"}
 //                 </button>
 //               </>
 //             )}
@@ -1485,7 +1726,9 @@
 //                   type="button"
 //                   onClick={() => setActiveTab(tab.id)}
 //                   className={`relative flex items-center gap-1.5 px-4 py-3.5 text-sm font-medium whitespace-nowrap transition-colors ${
-//                     active ? "text-blue-600" : "text-slate-500 hover:text-slate-700"
+//                     active
+//                       ? "text-blue-600"
+//                       : "text-slate-500 hover:text-slate-700"
 //                   }`}
 //                 >
 //                   <Icon size={16} />
@@ -1494,7 +1737,11 @@
 //                     <motion.span
 //                       layoutId="jobs-tab-underline"
 //                       className="absolute left-2 right-2 -bottom-px h-0.5 bg-blue-600 rounded-full"
-//                       transition={{ type: "spring", stiffness: 500, damping: 35 }}
+//                       transition={{
+//                         type: "spring",
+//                         stiffness: 500,
+//                         damping: 35,
+//                       }}
 //                     />
 //                   )}
 //                 </button>
@@ -1515,7 +1762,8 @@
 //                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
 //                     {getTabFields(activeTab).map((fieldDef) => {
 //                       // For activity tab, we only show in view mode
-//                       if (activeTab === "activity" && mode !== "view") return null;
+//                       if (activeTab === "activity" && mode !== "view")
+//                         return null;
 //                       return (
 //                         <div
 //                           key={fieldDef.name}
@@ -1590,7 +1838,9 @@
 //                   <div className="p-2 rounded-full bg-red-50">
 //                     <MdWarning size={18} className="text-red-500" />
 //                   </div>
-//                   <h3 className="text-base font-semibold text-slate-800">Delete Job?</h3>
+//                   <h3 className="text-base font-semibold text-slate-800">
+//                     Delete Job?
+//                   </h3>
 //                 </div>
 //                 <button
 //                   onClick={() => setIsDeleteModalOpen(false)}
@@ -1602,7 +1852,11 @@
 //               </div>
 //               <div className="px-5 py-4">
 //                 <p className="text-sm text-slate-600">
-//                   This will permanently remove <span className="font-medium text-slate-800">{heroTitle}</span> and its data. This action cannot be undone.
+//                   This will permanently remove{" "}
+//                   <span className="font-medium text-slate-800">
+//                     {heroTitle}
+//                   </span>{" "}
+//                   and its data. This action cannot be undone.
 //                 </p>
 //               </div>
 //               <div className="flex justify-end gap-2.5 px-5 py-4 border-t border-slate-100">
@@ -1634,9 +1888,9 @@
 
 // export default JobsForm;
 
-import React, { useEffect, useState, useRef } from "react";
+
+import React, { useEffect, useState } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
-import { Editor } from "@tinymce/tinymce-react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   MdArrowBack,
@@ -1812,158 +2066,6 @@ const FieldLabel = ({ children, required }) => (
   </label>
 );
 
-const RichTextEditorField = ({ value, onChange, height = 350 }) => {
-  const [editorMode, setEditorMode] = useState("text");
-  const editorRef = useRef(null);
-
-  const syncToEditor = (nextValue) => {
-    if (
-      editorRef.current &&
-      typeof editorRef.current.setContent === "function"
-    ) {
-      editorRef.current.setContent(nextValue || "", { format: "html" });
-    }
-  };
-
-  const handleModeChange = (nextMode) => {
-    if (nextMode === "html" && editorRef.current) {
-      const currentHtml = editorRef.current.getContent();
-      if (currentHtml !== value) {
-        onChange(currentHtml);
-      }
-    }
-
-    if (nextMode === "text") {
-      syncToEditor(value || "");
-    }
-
-    setEditorMode(nextMode);
-  };
-
-  return (
-    <div className="space-y-3">
-      <div className="flex gap-1 p-1 w-fit bg-slate-100 rounded-lg">
-        {["text", "html"].map((mode) => (
-          <button
-            key={mode}
-            type="button"
-            onClick={() => handleModeChange(mode)}
-            className={`px-3 py-1.5 text-sm font-medium rounded-md transition-all ${
-              editorMode === mode
-                ? "bg-white text-blue-600 shadow-sm"
-                : "text-slate-600 hover:text-slate-900"
-            }`}
-          >
-            {mode === "text" ? "Text" : "HTML"}
-          </button>
-        ))}
-      </div>
-
-      {editorMode === "text" ? (
-        <div className="border border-slate-200 rounded-xl overflow-hidden">
-          <Editor
-            tinymceScriptSrc="/tinymce/tinymce.min.js"
-            licenseKey="gpl"
-            value={value || ""}
-            onEditorChange={onChange}
-            onInit={(evt, editor) => {
-              editorRef.current = editor;
-              editor.setContent(value || "", { format: "html" });
-            }}
-            init={{
-              height,
-              menubar: false,
-              statusbar: true,
-              plugins: [
-                "advlist",
-                "autolink",
-                "lists",
-                "link",
-                "image",
-                "charmap",
-                "preview",
-                "anchor",
-                "searchreplace",
-                "visualblocks",
-                "code",
-                "fullscreen",
-                "insertdatetime",
-                "media",
-                "table",
-                "help",
-                "wordcount",
-              ],
-              toolbar:
-                "undo redo | blocks | bold italic underline strikethrough | " +
-                "alignleft aligncenter alignright alignjustify | " +
-                "bullist numlist outdent indent | link image table | " +
-                "forecolor backcolor | removeformat code | help",
-              content_style:
-                "body { font-family: 'Inter', sans-serif; font-size: 14px; line-height: 1.7; } p { margin: 0 0 10px; } h1, h2, h3, h4, h5, h6 { margin: 0 0 12px; line-height: 1.3; }",
-              placeholder: "Write the job description here…",
-              forced_root_block: "p",
-              verify_html: false,
-              cleanup: false,
-            }}
-          />
-        </div>
-      ) : (
-        <textarea
-          value={value || ""}
-          onChange={(event) => onChange(event.target.value)}
-          className="w-full min-h-[350px] px-4 py-3 bg-slate-950 text-slate-100 border border-slate-200 rounded-xl text-sm font-mono placeholder-slate-400 outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 focus:bg-slate-950 transition-all resize-y"
-          spellCheck={false}
-          rows={16}
-          placeholder="<!-- Write HTML here -->"
-        />
-      )}
-    </div>
-  );
-};
-
-const RichTextViewer = ({ value }) => {
-  const [viewMode, setViewMode] = useState("text");
-  const content = value || "";
-
-  return (
-    <div className="space-y-3">
-      <div className="flex gap-1 p-1 w-fit bg-slate-100 rounded-lg">
-        {["text", "html"].map((mode) => (
-          <button
-            key={mode}
-            type="button"
-            onClick={() => setViewMode(mode)}
-            className={`px-3 py-1.5 text-sm font-medium rounded-md transition-all ${
-              viewMode === mode
-                ? "bg-white text-blue-600 shadow-sm"
-                : "text-slate-600 hover:text-slate-900"
-            }`}
-          >
-            {mode === "text" ? "Text" : "HTML"}
-          </button>
-        ))}
-      </div>
-
-      {viewMode === "text" ? (
-        <div className="p-4 bg-slate-50 border border-slate-200 rounded-xl">
-          {content ? (
-            <div
-              className="prose prose-sm max-w-none text-slate-700 [&_a]:text-blue-600 [&_a]:underline [&_img]:rounded-lg [&_table]:border [&_table]:border-slate-300 [&_td]:border [&_td]:border-slate-300 [&_td]:p-2 [&_th]:border [&_th]:border-slate-300 [&_th]:p-2"
-              dangerouslySetInnerHTML={{ __html: content }}
-            />
-          ) : (
-            <span className="text-slate-400">—</span>
-          )}
-        </div>
-      ) : (
-        <pre className="whitespace-pre-wrap break-words p-4 font-mono text-xs text-slate-700 bg-slate-950/5 border border-slate-200 rounded-xl min-h-[120px]">
-          {content || ""}
-        </pre>
-      )}
-    </div>
-  );
-};
-
 const ReadOnlyValue = ({ children }) => (
   <div className="text-sm text-slate-700 py-2 px-3 bg-slate-50 rounded-lg border border-slate-200">
     {children || "—"}
@@ -2008,9 +2110,7 @@ const JobsForm = () => {
     return "add";
   };
 
-  const [mode, setMode] = useState(() =>
-    resolveModeFromPath(location.pathname),
-  );
+  const [mode, setMode] = useState(() => resolveModeFromPath(location.pathname));
   const [pageLoading, setPageLoading] = useState(() => {
     const initialMode = resolveModeFromPath(location.pathname);
     return initialMode === "edit" || initialMode === "view";
@@ -2057,10 +2157,7 @@ const JobsForm = () => {
               .map((c) => ({
                 ...c,
                 id: toNumberOrEmpty(
-                  c.id ??
-                    c.company_id ??
-                    c.Company?.id ??
-                    c.Company?.company_id,
+                  c.id ?? c.company_id ?? c.Company?.id ?? c.Company?.company_id,
                 ),
               }))
               .filter((c) => c.id !== "")
@@ -2068,8 +2165,7 @@ const JobsForm = () => {
         setCompanies(normalizedCompanies);
 
         // Job Types
-        const jobTypeData =
-          jobTypeResponse?.data?.data || jobTypeResponse?.data || [];
+        const jobTypeData = jobTypeResponse?.data?.data || jobTypeResponse?.data || [];
         const normalizedJobTypes = Array.isArray(jobTypeData)
           ? jobTypeData
               .filter(
@@ -2174,9 +2270,7 @@ const JobsForm = () => {
         item.company?.company_id ??
         item.company?.id,
     );
-    const jobTypeId = toNumberOrEmpty(
-      item.jobtype_id ?? item.JobType?.jobtype_id,
-    );
+    const jobTypeId = toNumberOrEmpty(item.jobtype_id ?? item.JobType?.jobtype_id);
     const workplaceTypeId = toNumberOrEmpty(
       item.workplacetype_id ?? item.WorkplaceType?.workplacetype_id,
     );
@@ -2202,11 +2296,9 @@ const JobsForm = () => {
       jobtype_id: jobTypeId,
       jobtype_name: item.JobType?.name || item.jobtype_name || "",
       workplacetype_id: workplaceTypeId,
-      workplacetype_name:
-        item.WorkplaceType?.name || item.workplacetype_name || "",
+      workplacetype_name: item.WorkplaceType?.name || item.workplacetype_name || "",
       functionrole_id: functionRoleId,
-      functionrole_name:
-        item.FunctionRole?.name || item.functionrole_name || "",
+      functionrole_name: item.FunctionRole?.name || item.functionrole_name || "",
       experience_min: item.experience_min ?? "",
       experience_max: item.experience_max ?? "",
       experience_type: item.experience_type || "experience",
@@ -2221,8 +2313,7 @@ const JobsForm = () => {
       is_trending: toBoolean(item.is_trending),
       is_status: toBoolean(item.is_status),
       daily_application_summary: toBoolean(item.daily_application_summary),
-      notify_matching_type:
-        item.notify_matching_type || "All matching applicants",
+      notify_matching_type: item.notify_matching_type || "All matching applicants",
       prioritize_women: toBoolean(item.prioritize_women),
       schedule_date: item.schedule_date || null,
       published_at: item.published_at || null,
@@ -2264,9 +2355,7 @@ const JobsForm = () => {
 
   useEffect(() => {
     if (!data?.company_id) return;
-    const company = companies.find(
-      (c) => Number(c.id) === Number(data.company_id),
-    );
+    const company = companies.find((c) => Number(c.id) === Number(data.company_id));
     if (!company) return;
     const companyName =
       company.company_name || company.CompanyUser?.company_user_email || "";
@@ -2408,8 +2497,7 @@ const JobsForm = () => {
       custom: (value) => {
         if (value !== "" && value !== null && value !== undefined) {
           const num = Number(value);
-          if (Number.isNaN(num))
-            return "Experience minimum must be a valid number";
+          if (Number.isNaN(num)) return "Experience minimum must be a valid number";
           if (num < 0) return "Experience minimum cannot be negative";
           if (num > 50) return "Experience minimum cannot exceed 50 years";
         }
@@ -2420,8 +2508,7 @@ const JobsForm = () => {
       custom: (value, formData) => {
         if (value !== "" && value !== null && value !== undefined) {
           const num = Number(value);
-          if (Number.isNaN(num))
-            return "Experience maximum must be a valid number";
+          if (Number.isNaN(num)) return "Experience maximum must be a valid number";
           if (num < 0) return "Experience maximum cannot be negative";
           if (num > 50) return "Experience maximum cannot exceed 50 years";
           if (
@@ -2471,10 +2558,7 @@ const JobsForm = () => {
   const validateField = (name, value, allValues) => {
     const rules = getValidationRules()[name];
     if (!rules) return null;
-    if (
-      rules.required &&
-      (value === "" || value === null || value === undefined)
-    ) {
+    if (rules.required && (value === "" || value === null || value === undefined)) {
       return rules.requiredMessage || `${name} is required`;
     }
     if (rules.minLength && value?.length < rules.minLength) {
@@ -2520,13 +2604,9 @@ const JobsForm = () => {
         workplacetype_id: toNumberOrEmpty(formValues.workplacetype_id) || null,
         functionrole_id: toNumberOrEmpty(formValues.functionrole_id) || null,
         experience_min:
-          formValues.experience_min !== ""
-            ? Number(formValues.experience_min)
-            : null,
+          formValues.experience_min !== "" ? Number(formValues.experience_min) : null,
         experience_max:
-          formValues.experience_max !== ""
-            ? Number(formValues.experience_max)
-            : null,
+          formValues.experience_max !== "" ? Number(formValues.experience_max) : null,
         experience_type: formValues.experience_type || "experience",
         salary_min:
           formValues.salary_min !== "" ? Number(formValues.salary_min) : null,
@@ -2543,14 +2623,8 @@ const JobsForm = () => {
         daily_application_summary: true,
         notify_matching_type: "All matching applicants",
         prioritize_women: false,
-        schedule_date:
-          formValues.job_status === "published"
-            ? new Date().toISOString()
-            : null,
-        published_at:
-          formValues.job_status === "published"
-            ? new Date().toISOString()
-            : null,
+        schedule_date: formValues.job_status === "published" ? new Date().toISOString() : null,
+        published_at: formValues.job_status === "published" ? new Date().toISOString() : null,
         slug: generateSlug(formValues.title.trim()),
       };
 
@@ -2593,9 +2667,7 @@ const JobsForm = () => {
       navigate("/jobs");
     } catch (error) {
       console.error("Delete error:", error);
-      showError(
-        error?.response?.data?.message || error?.message || "Failed to delete",
-      );
+      showError(error?.response?.data?.message || error?.message || "Failed to delete");
     } finally {
       setDeleteLoading(false);
       setIsDeleteModalOpen(false);
@@ -2630,12 +2702,7 @@ const JobsForm = () => {
       value: Number(f.id),
       label: f.name || "",
     }));
-    return {
-      companyOptions,
-      jobTypeOptions,
-      workplaceTypeOptions,
-      functionRoleOptions,
-    };
+    return { companyOptions, jobTypeOptions, workplaceTypeOptions, functionRoleOptions };
   };
 
   // ─── Render field based on definition ──────────────────────
@@ -2661,22 +2728,11 @@ const JobsForm = () => {
     const error = errors[name];
     const isTouched = touched[name];
 
-    if (mode === "view" && name === "job_description") {
-      return (
-        <div key={name} className="mb-4 md:col-span-2">
-          <FieldLabel>{label}</FieldLabel>
-          <RichTextViewer value={value} />
-        </div>
-      );
-    }
-
     if (mode === "view" && viewRender) {
       return (
         <div key={name} className="mb-4">
           <FieldLabel>{label}</FieldLabel>
-          <div className="text-sm text-slate-700">
-            {viewRender(value, formValues)}
-          </div>
+          <div className="text-sm text-slate-700">{viewRender(value, formValues)}</div>
         </div>
       );
     }
@@ -2710,32 +2766,18 @@ const JobsForm = () => {
         break;
 
       case "textarea":
-        if (name === "job_description") {
-          inputElement = (
-            <RichTextEditorField
-              value={value}
-              onChange={(nextValue) => {
-                setFormValues((prev) => ({ ...prev, [name]: nextValue }));
-                if (errors[name]) {
-                  setErrors((prev) => ({ ...prev, [name]: undefined }));
-                }
-              }}
-            />
-          );
-        } else {
-          inputElement = (
-            <textarea
-              name={name}
-              value={value}
-              onChange={handleInputChange}
-              onBlur={handleBlur}
-              rows={rows || 4}
-              placeholder={placeholder}
-              disabled={disabled}
-              className={`${commonInputClass} resize-y`}
-            />
-          );
-        }
+        inputElement = (
+          <textarea
+            name={name}
+            value={value}
+            onChange={handleInputChange}
+            onBlur={handleBlur}
+            rows={rows || 4}
+            placeholder={placeholder}
+            disabled={disabled}
+            className={`${commonInputClass} resize-y`}
+          />
+        );
         break;
 
       case "checkbox":
@@ -2759,10 +2801,7 @@ const JobsForm = () => {
         inputElement = (
           <div className="flex flex-wrap gap-4 pt-1.5">
             {options?.map((opt) => (
-              <label
-                key={opt.value}
-                className="flex items-center gap-2 text-sm text-slate-700"
-              >
+              <label key={opt.value} className="flex items-center gap-2 text-sm text-slate-700">
                 <input
                   type="radio"
                   name={name}
@@ -2861,14 +2900,7 @@ const JobsForm = () => {
         // description
         ["job_description"],
         // status
-        [
-          "job_status",
-          "posting_type",
-          "expiry_date",
-          "auto_renew",
-          "is_trending",
-          "status",
-        ],
+        ["job_status", "posting_type", "expiry_date", "auto_renew", "is_trending", "status"],
         // activity
         ["created_by", "created_at", "updated_by", "updated_at"],
       ];
@@ -2884,14 +2916,7 @@ const JobsForm = () => {
       // description
       ["job_description"],
       // status
-      [
-        "job_status",
-        "posting_type",
-        "expiry_date",
-        "auto_renew",
-        "is_trending",
-        "status",
-      ],
+      ["job_status", "posting_type", "expiry_date", "auto_renew", "is_trending", "status"],
       // activity - only in edit/view, not in add
     ];
   })();
@@ -2962,8 +2987,7 @@ const JobsForm = () => {
               return formatDateTime(row?.[name]);
             }
             if (name === "created_by" || name === "updated_by") {
-              const nameFn =
-                name === "created_by" ? getCreatedByName : getUpdatedByName;
+              const nameFn = name === "created_by" ? getCreatedByName : getUpdatedByName;
               return nameFn(row);
             }
             return value || "—";
@@ -3016,9 +3040,7 @@ const JobsForm = () => {
             type: "select",
             required: true,
             options: companyOptions,
-            placeholder: loadingDropdowns
-              ? "Loading companies..."
-              : "Select company",
+            placeholder: loadingDropdowns ? "Loading companies..." : "Select company",
             disabled: loadingDropdowns,
           },
           reference_code: {
@@ -3033,9 +3055,7 @@ const JobsForm = () => {
             type: "select",
             required: true,
             options: jobTypeOptions,
-            placeholder: loadingDropdowns
-              ? "Loading job types..."
-              : "Select job type",
+            placeholder: loadingDropdowns ? "Loading job types..." : "Select job type",
             disabled: loadingDropdowns,
           },
           workplacetype_id: {
@@ -3044,9 +3064,7 @@ const JobsForm = () => {
             type: "select",
             required: true,
             options: workplaceTypeOptions,
-            placeholder: loadingDropdowns
-              ? "Loading workplace types..."
-              : "Select workplace type",
+            placeholder: loadingDropdowns ? "Loading workplace types..." : "Select workplace type",
             disabled: loadingDropdowns,
           },
           functionrole_id: {
@@ -3055,9 +3073,7 @@ const JobsForm = () => {
             type: "select",
             required: true,
             options: functionRoleOptions,
-            placeholder: loadingDropdowns
-              ? "Loading function roles..."
-              : "Select function role",
+            placeholder: loadingDropdowns ? "Loading function roles..." : "Select function role",
             disabled: loadingDropdowns,
           },
           experience_min: {
@@ -3198,8 +3214,10 @@ const JobsForm = () => {
     );
   }
 
-  const heroTitle =
-    mode === "add" ? "Create New Job" : formValues.title || "Untitled Job";
+ const heroTitle =
+  mode === "add"
+    ? "Create New Job"
+    : formValues.title || "Untitled Job";
   const companyName = formValues.company_name || formValues.company_id || "—";
   const status = formValues.job_status || "draft";
   const isTrending = formValues.is_trending;
@@ -3270,11 +3288,7 @@ const JobsForm = () => {
                   ) : (
                     <MdSave size={16} />
                   )}
-                  {loading
-                    ? "Saving..."
-                    : mode === "edit"
-                      ? "Update Job"
-                      : "Create Job"}
+                  {loading ? "Saving..." : mode === "edit" ? "Update Job" : "Create Job"}
                 </button>
               </>
             )}
@@ -3362,9 +3376,7 @@ const JobsForm = () => {
                   type="button"
                   onClick={() => setActiveTab(tab.id)}
                   className={`relative flex items-center gap-1.5 px-4 py-3.5 text-sm font-medium whitespace-nowrap transition-colors ${
-                    active
-                      ? "text-blue-600"
-                      : "text-slate-500 hover:text-slate-700"
+                    active ? "text-blue-600" : "text-slate-500 hover:text-slate-700"
                   }`}
                 >
                   <Icon size={16} />
@@ -3373,11 +3385,7 @@ const JobsForm = () => {
                     <motion.span
                       layoutId="jobs-tab-underline"
                       className="absolute left-2 right-2 -bottom-px h-0.5 bg-blue-600 rounded-full"
-                      transition={{
-                        type: "spring",
-                        stiffness: 500,
-                        damping: 35,
-                      }}
+                      transition={{ type: "spring", stiffness: 500, damping: 35 }}
                     />
                   )}
                 </button>
@@ -3398,8 +3406,7 @@ const JobsForm = () => {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {getTabFields(activeTab).map((fieldDef) => {
                       // For activity tab, we only show in view mode
-                      if (activeTab === "activity" && mode !== "view")
-                        return null;
+                      if (activeTab === "activity" && mode !== "view") return null;
                       return (
                         <div
                           key={fieldDef.name}
@@ -3474,9 +3481,7 @@ const JobsForm = () => {
                   <div className="p-2 rounded-full bg-red-50">
                     <MdWarning size={18} className="text-red-500" />
                   </div>
-                  <h3 className="text-base font-semibold text-slate-800">
-                    Delete Job?
-                  </h3>
+                  <h3 className="text-base font-semibold text-slate-800">Delete Job?</h3>
                 </div>
                 <button
                   onClick={() => setIsDeleteModalOpen(false)}
@@ -3488,11 +3493,7 @@ const JobsForm = () => {
               </div>
               <div className="px-5 py-4">
                 <p className="text-sm text-slate-600">
-                  This will permanently remove{" "}
-                  <span className="font-medium text-slate-800">
-                    {heroTitle}
-                  </span>{" "}
-                  and its data. This action cannot be undone.
+                  This will permanently remove <span className="font-medium text-slate-800">{heroTitle}</span> and its data. This action cannot be undone.
                 </p>
               </div>
               <div className="flex justify-end gap-2.5 px-5 py-4 border-t border-slate-100">

@@ -1,4 +1,3 @@
-
 // import React, { useState, useEffect } from "react";
 // import { useNavigate, useParams } from "react-router-dom";
 // import { motion, AnimatePresence } from "framer-motion";
@@ -46,13 +45,17 @@
 //   return `${API_BASE_URL}/uploads/${path}`;
 // };
 
+// // ─── FIX: Resume URL builder ─────────────────────────────────
+// // Handles bare filenames, full URLs, and relative paths.
+// // Always points to /uploads/ (not /uploads/resumes/)
 // const getResumeUrl = (path) => {
 //   if (!path) return null;
 //   if (path.startsWith("http://") || path.startsWith("https://")) return path;
 //   if (path.startsWith("/uploads/")) return `${API_BASE_URL}${path}`;
 //   if (path.startsWith("./uploads/")) return `${API_BASE_URL}${path.substring(1)}`;
 //   if (path.startsWith("uploads/")) return `${API_BASE_URL}/${path}`;
-//   return `${API_BASE_URL}/uploads/resumes/${encodeURIComponent(path)}`;
+//   // Default: treat as a bare filename inside /uploads/
+//   return `${API_BASE_URL}/uploads/${encodeURIComponent(path)}`;
 // };
 
 // // ─── Status styles ─────────────────────────────────────────────
@@ -612,7 +615,7 @@
 //         return (
 //           <div className="space-y-6">
 //             {/* Resume */}
-//             {candidate_resumes?.resume_file && (
+//             {candidate_resumes?.resume_file ? (
 //               <div>
 //                 <FieldLabel>Resume</FieldLabel>
 //                 <a
@@ -625,6 +628,11 @@
 //                   {candidate_resumes.resume_title || "Download Resume"}
 //                   <MdOpenInNew size={14} />
 //                 </a>
+//               </div>
+//             ) : (
+//               <div>
+//                 <FieldLabel>Resume</FieldLabel>
+//                 <p className="text-slate-400 text-sm">No resume uploaded.</p>
 //               </div>
 //             )}
 
@@ -966,7 +974,7 @@
 
 // export default CandidateView;
 
-// pages/candidates/CandidateView.jsx
+
 import React, { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";

@@ -955,22 +955,22 @@ const PerkBenefit = () => {
         <span className="text-gray-600">{v || "-"}</span>
       ),
     },
-    {
-      header: "Trending",
-      key: "is_trending",
-      render: (value, row) => (
-        <button
-          onClick={() => handleTrendingToggle(row)}
-          className={`relative inline-flex items-center h-6 rounded-full w-11 transition-colors focus:outline-none ${value ? "bg-yellow-500" : "bg-gray-300"
-            }`}
-        >
-          <span
-            className={`inline-block w-4 h-4 transform bg-white rounded-full transition-transform shadow ${value ? "translate-x-6" : "translate-x-1"
-              }`}
-          />
-        </button>
-      ),
-    },
+    // {
+    //   header: "Trending",
+    //   key: "is_trending",
+    //   render: (value, row) => (
+    //     <button
+    //       onClick={() => handleTrendingToggle(row)}
+    //       className={`relative inline-flex items-center h-6 rounded-full w-11 transition-colors focus:outline-none ${value ? "bg-yellow-500" : "bg-gray-300"
+    //         }`}
+    //     >
+    //       <span
+    //         className={`inline-block w-4 h-4 transform bg-white rounded-full transition-transform shadow ${value ? "translate-x-6" : "translate-x-1"
+    //           }`}
+    //       />
+    //     </button>
+    //   ),
+    // },
     {
       header: "Status",
       key: "status",

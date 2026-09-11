@@ -1,5 +1,4 @@
-
-
+// // pages/Candidates.jsx
 // import React, { useState, useEffect, useMemo } from "react";
 // import { useNavigate } from "react-router-dom";
 // import Table from "../../components/common/Table";
@@ -110,11 +109,12 @@
 //   const filteredData = useMemo(() => {
 //     let result = data;
 //     if (statusFilter !== "all") {
-//       result = result.filter((item) =>
-//         statusFilter === "active"
-//           ? item.status === "active"
-//           : item.status !== "active",
-//       );
+//       result = result.filter((item) => {
+//         if (statusFilter === "active") return item.status === "active";
+//         if (statusFilter === "inactive") return item.status === "inactive";
+//         if (statusFilter === "blocked") return item.status === "blocked";
+//         return true;
+//       });
 //     }
 //     const query = search.toLowerCase().trim();
 //     if (query) {
@@ -132,8 +132,10 @@
 
 //   const paginatedData = filteredData.slice((page - 1) * limit, page * limit);
 
+//   // Counts for tabs
 //   const activeCount = data.filter((c) => c.status === "active").length;
-//   const inactiveCount = data.length - activeCount;
+//   const inactiveCount = data.filter((c) => c.status === "inactive").length;
+//   const blockedCount = data.filter((c) => c.status === "blocked").length;
 
 //   const getCreatedByName = (row) => {
 //     if (!row) return "-";
@@ -220,6 +222,7 @@
 //       key: "id",
 //       render: (_, __, i) => (page - 1) * limit + i + 1,
 //     },
+//     // Photo column commented out (can be re-enabled if needed)
 //     // {
 //     //   header: "Photo",
 //     //   key: "profile_photo",
@@ -261,20 +264,30 @@
 //     {
 //       header: "Status",
 //       key: "status",
-//       render: (status, row) => (
-//         <button
-//           onClick={() => handleStatusToggle(row.id, status)}
-//           className={`relative inline-flex items-center h-6 rounded-full w-11 transition-colors focus:outline-none ${
-//             status === "active" ? "bg-[#2c0eee]" : "bg-gray-300"
-//           }`}
-//         >
-//           <span
-//             className={`inline-block w-4 h-4 transform bg-white rounded-full transition-transform shadow ${
-//               status === "active" ? "translate-x-6" : "translate-x-1"
+//       render: (status, row) => {
+//         // If status is blocked, show a disabled toggle or a badge
+//         if (status === "blocked") {
+//           return (
+//             <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+//               Blocked
+//             </span>
+//           );
+//         }
+//         return (
+//           <button
+//             onClick={() => handleStatusToggle(row.id, status)}
+//             className={`relative inline-flex items-center h-6 rounded-full w-11 transition-colors focus:outline-none ${
+//               status === "active" ? "bg-[#2c0eee]" : "bg-gray-300"
 //             }`}
-//           />
-//         </button>
-//       ),
+//           >
+//             <span
+//               className={`inline-block w-4 h-4 transform bg-white rounded-full transition-transform shadow ${
+//                 status === "active" ? "translate-x-6" : "translate-x-1"
+//               }`}
+//             />
+//           </button>
+//         );
+//       },
 //     },
 //     {
 //       header: "Last Login",
@@ -315,10 +328,12 @@
 //     },
 //   ];
 
+//   // Tabs: All, Active, Inactive, Blocked (like company module)
 //   const tabs = [
 //     { key: "all", label: "All", count: data.length },
 //     { key: "active", label: "Active", count: activeCount },
 //     { key: "inactive", label: "Inactive", count: inactiveCount },
+//     { key: "blocked", label: "Blocked", count: blockedCount },
 //   ];
 
 //   return (
@@ -355,14 +370,16 @@
 //             />
 //           </div>
 
-//           <div className="flex items-center gap-5 text-sm">
+//           <div className="flex items-center gap-5 text-sm flex-wrap">
 //             {tabs.map((tab) => (
 //               <button
 //                 key={tab.key}
 //                 onClick={() => setStatusFilter(tab.key)}
 //                 className={`flex items-center gap-1.5 font-medium transition-colors ${
 //                   statusFilter === tab.key
-//                     ? "text-[#2c0eee]"
+//                     ? tab.key === "blocked"
+//                       ? "text-red-600"
+//                       : "text-[#2c0eee]"
 //                     : "text-gray-500 hover:text-gray-700"
 //                 }`}
 //               >
@@ -370,7 +387,9 @@
 //                 <span
 //                   className={`text-xs px-1.5 py-0.5 rounded-md font-semibold ${
 //                     statusFilter === tab.key
-//                       ? "bg-blue-50 text-[#2c0eee]"
+//                       ? tab.key === "blocked"
+//                         ? "bg-red-50 text-red-600"
+//                         : "bg-blue-50 text-[#2c0eee]"
 //                       : "bg-gray-100 text-gray-500"
 //                   }`}
 //                 >
@@ -424,7 +443,7 @@
 
 // export default Candidates;
 
-// pages/Candidates.jsx
+
 import React, { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import Table from "../../components/common/Table";
@@ -445,6 +464,23 @@ import {
 } from "react-icons/md";
 
 const API_BASE_URL = "https://apidata.hiremejobs.in";
+
+// ─── Helpers to safely extract arrays & pagination from any response shape ──
+const extractList = (body) => {
+  if (Array.isArray(body)) return body;
+  if (!body || typeof body !== "object") return [];
+  if (Array.isArray(body.data?.data)) return body.data.data;
+  if (Array.isArray(body.data)) return body.data;
+  if (Array.isArray(body.results)) return body.results;
+  return [];
+};
+
+const extractPagination = (body) => {
+  if (!body || typeof body !== "object") return null;
+  if (body.data?.pagination) return body.data.pagination;
+  if (body.pagination) return body.pagination;
+  return null;
+};
 
 const Candidates = () => {
   const navigate = useNavigate();
@@ -500,30 +536,109 @@ const Candidates = () => {
     updated_at: item.updatedAt || item.updated_at || null,
   });
 
-  const load = async () => {
-    setLoading(true);
-    try {
-      const users = await fetchUsers();
-      const userMap = {};
-      Object.keys(users).forEach((id) => {
-        userMap[id] = users[id].name;
-      });
-      setUserNameCache(userMap);
+  // ─── Load ALL candidates from API without duplicate records ───
+const load = async () => {
+  setLoading(true);
 
-      const r = await candidateService.getAll();
-      const rawData = r.data?.data?.data || r.data?.results || r.data || [];
-      const items = Array.isArray(rawData)
-        ? rawData.map(normalizeCandidate)
-        : [];
-      setData(items);
-    } catch (err) {
-      console.error("Load error:", err);
-      showError(err.response?.data?.message || "Failed to load candidates");
-    } finally {
-      setLoading(false);
+  try {
+    // 1. Load users for name cache
+    const users = await fetchUsers();
+    const userMap = {};
+    Object.keys(users || {}).forEach((id) => {
+      userMap[id] = users[id].name;
+    });
+    setUserNameCache(userMap);
+
+    // 2. Fetch first page
+    const firstResponse = await candidateService.getAll({ page: 1, limit: 20 });
+    const firstBody = firstResponse?.data;
+
+    console.log("PAGE 1 RESPONSE:", firstBody);
+
+    let allCandidates = extractList(firstBody);
+    const pagination = extractPagination(firstBody);
+
+    const total = Number(pagination?.total || 0);
+    let totalPages = Number(
+      pagination?.totalPages ||
+      pagination?.total_pages ||
+      (total ? Math.ceil(total / 20) : 1) ||
+      1
+    );
+
+    console.log("PAGINATION:", pagination, "TOTAL PAGES:", totalPages);
+
+    // Fallback: if totalPages looks wrong (e.g. NaN or 1 but a "next" link exists),
+    // trust the presence of a next link instead.
+    let nextLink = pagination?.links?.next || null;
+    if ((!totalPages || totalPages < 2) && nextLink) {
+      totalPages = 999; // let the while-loop below drive it off nextLink instead
     }
-  };
 
+    // 3. Fetch remaining pages
+    let currentPage = 2;
+    while (currentPage <= totalPages) {
+      console.log(`Fetching page ${currentPage}`);
+
+      const response = await candidateService.getAll({
+        page: currentPage,
+        limit: 20,
+      });
+      const body = response?.data;
+
+      console.log(`PAGE ${currentPage} RESPONSE:`, body);
+
+      const pageCandidates = extractList(body);
+      const pagePagination = extractPagination(body);
+
+      if (pageCandidates.length === 0) {
+        // No more data — stop to avoid an infinite/incorrect loop
+        break;
+      }
+
+      allCandidates.push(...pageCandidates);
+
+      // Determine whether to continue
+      nextLink = pagePagination?.links?.next || null;
+      const pageTotalPages = Number(
+        pagePagination?.totalPages || pagePagination?.total_pages || 0
+      );
+
+      if (pageTotalPages) {
+        totalPages = pageTotalPages; // trust the latest authoritative value
+      } else if (!nextLink) {
+        break; // no more pages
+      }
+
+      currentPage++;
+
+      // Safety valve: never loop more than 500 times
+      if (currentPage > 500) break;
+    }
+
+    // 4. Remove duplicates by ID
+    const uniqueCandidates = Array.from(
+      new Map(
+        allCandidates.map((candidate) => [
+          String(candidate?.id ?? candidate?._id),
+          candidate,
+        ])
+      ).values()
+    );
+
+    // 5. Normalize and store
+    const items = uniqueCandidates.map(normalizeCandidate);
+    setData(items);
+
+    console.log(`✅ Candidates fetched (raw): ${allCandidates.length}`);
+    console.log(`✅ Unique candidates in list: ${items.length}`);
+  } catch (error) {
+    console.error("Candidate load error:", error);
+    showError(error?.response?.data?.message || "Failed to load candidates");
+  } finally {
+    setLoading(false);
+  }
+};
   useEffect(() => {
     load();
   }, []);
@@ -608,16 +723,15 @@ const Candidates = () => {
     return 1;
   };
 
-  const handleStatusToggle = async (id, currentStatus) => {
-    const normalizedStatus = String(currentStatus || "inactive")
-      .trim()
-      .toLowerCase();
-    const newStatus = normalizedStatus === "active" ? "inactive" : "active";
+  // ─── NEW: Change status to any value (active / inactive / blocked) ──
+  const handleStatusChange = async (id, newStatus) => {
+    const previousStatus = data.find((item) => item.id === id)?.status;
 
+    // Optimistic update
     setData((prev) =>
       prev.map((item) =>
-        item.id === id ? { ...item, status: newStatus } : item,
-      ),
+        item.id === id ? { ...item, status: newStatus } : item
+      )
     );
 
     try {
@@ -627,12 +741,13 @@ const Candidates = () => {
       });
       showSuccess(`Status updated to ${newStatus}`);
     } catch (err) {
+      // Revert on failure
       setData((prev) =>
         prev.map((item) =>
-          item.id === id ? { ...item, status: normalizedStatus } : item,
-        ),
+          item.id === id ? { ...item, status: previousStatus } : item
+        )
       );
-      console.error("Status toggle error:", err);
+      console.error("Status update error:", err);
       showError(err.response?.data?.message || "Failed to update status");
     }
   };
@@ -690,30 +805,23 @@ const Candidates = () => {
     {
       header: "Status",
       key: "status",
-      render: (status, row) => {
-        // If status is blocked, show a disabled toggle or a badge
-        if (status === "blocked") {
-          return (
-            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
-              Blocked
-            </span>
-          );
-        }
-        return (
-          <button
-            onClick={() => handleStatusToggle(row.id, status)}
-            className={`relative inline-flex items-center h-6 rounded-full w-11 transition-colors focus:outline-none ${
-              status === "active" ? "bg-[#2c0eee]" : "bg-gray-300"
-            }`}
-          >
-            <span
-              className={`inline-block w-4 h-4 transform bg-white rounded-full transition-transform shadow ${
-                status === "active" ? "translate-x-6" : "translate-x-1"
-              }`}
-            />
-          </button>
-        );
-      },
+      render: (status, row) => (
+        <select
+          value={status}
+          onChange={(e) => handleStatusChange(row.id, e.target.value)}
+          className={`text-xs font-medium px-2.5 py-1.5 rounded-lg border focus:outline-none focus:ring-2 cursor-pointer transition-colors ${
+            status === "active"
+              ? "bg-green-50 text-green-700 border-green-200 focus:ring-green-100"
+              : status === "blocked"
+                ? "bg-red-50 text-red-700 border-red-200 focus:ring-red-100"
+                : "bg-gray-100 text-gray-600 border-gray-200 focus:ring-gray-100"
+          }`}
+        >
+          <option value="active">Active</option>
+          <option value="inactive">Inactive</option>
+          <option value="blocked">Blocked</option>
+        </select>
+      ),
     },
     {
       header: "Last Login",
@@ -867,4 +975,4 @@ const Candidates = () => {
   );
 };
 
-export default Candidates;
+export default Candidates; 

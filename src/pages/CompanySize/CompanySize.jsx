@@ -346,15 +346,15 @@ const CompanySize = () => {
         </div>
       ),
     },
-    {
-      header: "Size",
-      key: "size",
-      render: (v, row) => (
-        <span className="text-sm text-gray-500">
-          {v || extractSizeFromName(row.company_size_name) || "—"}
-        </span>
-      ),
-    },
+    // {
+    //   header: "Size",
+    //   key: "size",
+    //   render: (v, row) => (
+    //     <span className="text-sm text-gray-500">
+    //       {v || extractSizeFromName(row.company_size_name) || "—"}
+    //     </span>
+    //   ),
+    // },
     {
       header: "Trending",
       key: "is_trending",

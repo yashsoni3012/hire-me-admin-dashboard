@@ -467,7 +467,7 @@
 
 // export default CandidatesForm;
 
-// pages/candidates/CandidatesForm.jsx
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation, useParams } from 'react-router-dom';
 import FormPage from '../../components/common/FormPage';

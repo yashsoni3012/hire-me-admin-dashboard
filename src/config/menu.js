@@ -234,7 +234,7 @@ export const menuItems = [
       { label: 'Cities', path: '/cities', icon: 'MdLocationCity' },
       { label: 'Languages', path: '/languages', icon: 'MdLanguage' },
       { label: 'Currencies', path: '/currencies', icon: 'MdAttachMoney' },
-      { label: 'Departments', path: '/departments', icon: 'MdApartment' },
+      // { label: 'Departments', path: '/departments', icon: 'MdApartment' },
       { label: 'Billing Rates', path: '/billing-rates', icon: 'MdReceipt' },
       { label: 'Notice Period', path: '/notice-periods', icon: 'MdSettings' },
       { label: 'Banner', path: '/banners', icon: 'MdAdUnits' },

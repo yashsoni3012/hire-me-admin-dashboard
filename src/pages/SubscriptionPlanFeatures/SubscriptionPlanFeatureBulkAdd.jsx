@@ -350,7 +350,7 @@ const SubscriptionPlanFeatureBulkAdd = () => {
                                         <option value="">Select a plan</option>
                                         {plans.map((plan) => (
                                             <option key={plan.id || plan._id} value={plan.id || plan._id}>
-                                                {plan.plan_name} (${parseFloat(plan.price || 0).toFixed(2)})
+                                                {plan.plan_name} (₹{parseFloat(plan.price || 0).toFixed(2)})
                                             </option>
                                         ))}
                                     </select>

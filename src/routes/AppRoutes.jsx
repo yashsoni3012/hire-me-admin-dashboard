@@ -191,6 +191,7 @@ import Salary from "../pages/Salary/Salary";
 import AddSalary from "../pages/Salary/AddSalary";
 import EditSalary from "../pages/Salary/EditSalary";
 import ViewSalary from "../pages/Salary/ViewSalary";
+import SubscriptionPlanFeatureBulkEdit from "../pages/SubscriptionPlanFeatures/SubscriptionPlanFeatureBulkEdit";
 const AppRoutes = () => (
   <BrowserRouter>
     <Routes>
@@ -464,6 +465,11 @@ const AppRoutes = () => (
             element={<SubscriptionPlanFeatureBulkAdd />}
           />
 
+          <Route
+            path="/subscription-plan-features/bulk-edit"
+            element={<SubscriptionPlanFeatureBulkEdit />}
+          />
+
           <Route path="/contact" element={<ContactList />} />
           <Route path="/contact/view/:id" element={<ContactView />} />
           <Route path="/contact/edit/:id" element={<ContactEdit />} />
@@ -497,10 +503,10 @@ const AppRoutes = () => (
           <Route path="/languages/edit/:id" element={<EditLanguage />} />
           <Route path="/languages/view/:id" element={<ViewLanguage />} />
 
-          <Route path="/departments" element={<Department />} />
+          {/* <Route path="/departments" element={<Department />} />
           <Route path="/departments/add" element={<AddDepartment />} />
           <Route path="/departments/edit/:id" element={<EditDepartment />} />
-          <Route path="/departments/view/:id" element={<ViewDepartment />} />
+          <Route path="/departments/view/:id" element={<ViewDepartment />} /> */}
 
           <Route path="/currencies" element={<Currency />} />
           <Route path="/currencies/add" element={<AddCurrency />} />

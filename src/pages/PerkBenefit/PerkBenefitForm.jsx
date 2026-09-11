@@ -963,13 +963,13 @@ const PerkBenefitForm = () => {
       ],
       color: 'text-[#2c0eee] focus:ring-[#4529f7]',
     },
-    {
-      name: 'is_trending',
-      label: 'Mark as Trending',
-      type: 'checkbox',
-      color: 'text-yellow-500 focus:ring-yellow-500',
-      help: 'Trending perks will be highlighted in the listing',
-    },
+    // {
+    //   name: 'is_trending',
+    //   label: 'Mark as Trending',
+    //   type: 'checkbox',
+    //   color: 'text-yellow-500 focus:ring-yellow-500',
+    //   help: 'Trending perks will be highlighted in the listing',
+    // },
   ];
 
   const auditFields = [

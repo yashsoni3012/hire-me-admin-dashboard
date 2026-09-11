@@ -47,14 +47,15 @@ const BillingRate = () => {
 
   // Format currency
   const formatCurrency = (amount) => {
-    if (!amount && amount !== 0) return '-';
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    }).format(amount);
-  };
+  if (!amount && amount !== 0) return '-';
+
+  return new Intl.NumberFormat('en-IN', {
+    style: 'currency',
+    currency: 'INR',
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(amount);
+};
 
   // Normalize billing rate data
   const normalizeBillingRate = (item) => {
