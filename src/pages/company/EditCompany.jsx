@@ -1,4 +1,3 @@
-
 // import React, { useState, useEffect, useMemo } from "react";
 // import { useNavigate, useParams } from "react-router-dom";
 // import { motion, AnimatePresence } from "framer-motion";
@@ -1509,7 +1508,6 @@
 
 // export default EditCompany;
 
-
 import React, { useState, useEffect, useMemo } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
@@ -1683,6 +1681,85 @@ const FieldLabel = ({ children, required }) => (
     {required && <span className="text-red-500 ml-0.5">*</span>}
   </label>
 );
+
+const RichTextEditorField = ({ value, onChange, height = 280 }) => {
+  const [editorMode, setEditorMode] = useState("text");
+
+  return (
+    <div className="border border-slate-300 rounded-lg overflow-hidden">
+      <div className="flex items-center gap-1 border-b border-slate-200 bg-slate-50 px-2 py-1.5">
+        {["text", "html"].map((mode) => (
+          <button
+            key={mode}
+            type="button"
+            onClick={() => setEditorMode(mode)}
+            className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${
+              editorMode === mode
+                ? "bg-white text-slate-800 shadow-sm border border-slate-200"
+                : "text-slate-500 hover:text-slate-700"
+            }`}
+          >
+            {mode === "text" ? "Text" : "HTML"}
+          </button>
+        ))}
+      </div>
+
+      {editorMode === "text" ? (
+        <Editor
+          tinymceScriptSrc="/tinymce/tinymce.min.js"
+          licenseKey="gpl"
+          value={value || ""}
+          onEditorChange={(content) => onChange(content)}
+          init={{
+            height,
+            menubar: false,
+            plugins: [
+              "advlist",
+              "autolink",
+              "lists",
+              "link",
+              "image",
+              "charmap",
+              "preview",
+              "anchor",
+              "searchreplace",
+              "visualblocks",
+              "code",
+              "fullscreen",
+              "insertdatetime",
+              "media",
+              "table",
+              "help",
+              "wordcount",
+            ],
+            toolbar:
+              "undo redo | blocks | bold italic underline forecolor | " +
+              "alignleft aligncenter alignright alignjustify | " +
+              "bullist numlist outdent indent | link image table | " +
+              "removeformat code | help",
+            content_style:
+              "body { font-family:'Inter',sans-serif; font-size:14px }",
+            image_advtab: true,
+            images_upload_handler: (blobInfo) =>
+              new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = () => reject("Image upload failed");
+                reader.readAsDataURL(blobInfo.blob());
+              }),
+          }}
+        />
+      ) : (
+        <textarea
+          value={value || ""}
+          onChange={(event) => onChange(event.target.value)}
+          spellCheck={false}
+          className="w-full min-h-[280px] resize-y bg-slate-950 text-slate-100 p-3 font-mono text-xs leading-6 outline-none"
+        />
+      )}
+    </div>
+  );
+};
 
 const ReadOnlyValue = ({ children }) => (
   <div className="text-sm text-slate-700 py-2 px-3 bg-slate-50 rounded-lg border border-slate-200">
@@ -2169,7 +2246,10 @@ const EditCompany = () => {
         <button
           type="button"
           onClick={() =>
-            window.open(path.startsWith("blob:") ? path : getImageUrl(path), "_blank")
+            window.open(
+              path.startsWith("blob:") ? path : getImageUrl(path),
+              "_blank",
+            )
           }
           className="absolute inset-0 bg-slate-900/0 group-hover:bg-slate-900/50 rounded-lg flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-200"
         >
@@ -2391,7 +2471,11 @@ const EditCompany = () => {
                     <motion.span
                       layoutId="edit-company-tab-underline"
                       className="absolute left-2 right-2 -bottom-px h-0.5 bg-blue-600 rounded-full"
-                      transition={{ type: "spring", stiffness: 500, damping: 35 }}
+                      transition={{
+                        type: "spring",
+                        stiffness: 500,
+                        damping: 35,
+                      }}
                     />
                   )}
                 </button>
@@ -2478,55 +2562,14 @@ const EditCompany = () => {
 
                     <div>
                       <FieldLabel>About company</FieldLabel>
-                      <Editor
-                        tinymceScriptSrc="/tinymce/tinymce.min.js"
-                        licenseKey="gpl"
+                      <RichTextEditorField
                         value={formValues.about_company || ""}
-                        onEditorChange={(content) =>
+                        onChange={(content) =>
                           setFormValues((prev) => ({
                             ...prev,
                             about_company: content,
                           }))
                         }
-                        init={{
-                          height: 280,
-                          menubar: false,
-                          plugins: [
-                            "advlist",
-                            "autolink",
-                            "lists",
-                            "link",
-                            "image",
-                            "charmap",
-                            "preview",
-                            "anchor",
-                            "searchreplace",
-                            "visualblocks",
-                            "code",
-                            "fullscreen",
-                            "insertdatetime",
-                            "media",
-                            "table",
-                            "help",
-                            "wordcount",
-                          ],
-                          toolbar:
-                            "undo redo | blocks | bold italic underline forecolor | " +
-                            "alignleft aligncenter alignright alignjustify | " +
-                            "bullist numlist outdent indent | link image table | " +
-                            "removeformat code | help",
-                          content_style:
-                            "body { font-family:Helvetica,Arial,sans-serif; font-size:14px }",
-                          image_advtab: true,
-                          images_upload_handler: (blobInfo) =>
-                            new Promise((resolve, reject) => {
-                              const reader = new FileReader();
-                              reader.onload = () => resolve(reader.result);
-                              reader.onerror = () =>
-                                reject("Image upload failed");
-                              reader.readAsDataURL(blobInfo.blob());
-                            }),
-                        }}
                       />
                     </div>
 
@@ -2712,7 +2755,10 @@ const EditCompany = () => {
                       <div className="flex-1">
                         <FieldLabel>Owner Aadhar number</FieldLabel>
                         <div className="flex items-center gap-2 font-mono text-sm bg-slate-50 px-3 py-2 rounded-lg border border-slate-200">
-                          <MdPermIdentity size={16} className="text-slate-400" />
+                          <MdPermIdentity
+                            size={16}
+                            className="text-slate-400"
+                          />
                           {formValues.owner_adharcard || "—"}
                         </div>
                       </div>
@@ -2793,7 +2839,9 @@ const EditCompany = () => {
                           <input
                             type="file"
                             accept="image/*"
-                            onChange={(e) => handleFileChange(e, "banner_image")}
+                            onChange={(e) =>
+                              handleFileChange(e, "banner_image")
+                            }
                             className="hidden"
                           />
                         </label>
@@ -2930,9 +2978,7 @@ const EditCompany = () => {
               <div className="px-5 py-4">
                 <p className="text-sm text-slate-600">
                   This will permanently remove{" "}
-                  <span className="font-medium text-slate-800">
-                    {heroName}
-                  </span>{" "}
+                  <span className="font-medium text-slate-800">{heroName}</span>{" "}
                   and its data. This action cannot be undone.
                 </p>
               </div>

@@ -1,5 +1,3 @@
-
-
 // import React, { useState, useEffect } from "react";
 // import { useNavigate, useParams } from "react-router-dom";
 // import { motion, AnimatePresence } from "framer-motion";
@@ -1021,7 +1019,6 @@
 
 // export default ViewCompany;
 
-
 import React, { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
@@ -1066,15 +1063,24 @@ const getImageUrl = (path) => {
 // ─── Helper: Check if file is an image ──────────────────────────
 const isImageFile = (path) => {
   if (!path) return false;
-  const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.bmp', '.svg', '.avif'];
+  const imageExtensions = [
+    ".jpg",
+    ".jpeg",
+    ".png",
+    ".gif",
+    ".webp",
+    ".bmp",
+    ".svg",
+    ".avif",
+  ];
   const lowerPath = path.toLowerCase();
-  return imageExtensions.some(ext => lowerPath.endsWith(ext));
+  return imageExtensions.some((ext) => lowerPath.endsWith(ext));
 };
 
 // ─── Helper: Get file name from path ────────────────────────────
 const getFileName = (path) => {
-  if (!path) return 'Document';
-  return path.split('/').pop() || 'Document';
+  if (!path) return "Document";
+  return path.split("/").pop() || "Document";
 };
 
 // ─── Helper: Parse API date format ──────────────────────────────
@@ -1203,6 +1209,48 @@ const ReadOnlyValue = ({ children }) => (
   </div>
 );
 
+const RichTextViewer = ({ value }) => {
+  const [editorMode, setEditorMode] = useState("text");
+
+  return (
+    <div className="bg-slate-50 rounded-lg border border-slate-200 overflow-hidden">
+      <div className="flex items-center gap-1 border-b border-slate-200 bg-slate-100 px-2 py-1.5">
+        {["text", "html"].map((mode) => (
+          <button
+            key={mode}
+            type="button"
+            onClick={() => setEditorMode(mode)}
+            className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${
+              editorMode === mode
+                ? "bg-white text-slate-800 shadow-sm border border-slate-200"
+                : "text-slate-500 hover:text-slate-700"
+            }`}
+          >
+            {mode === "text" ? "Text" : "HTML"}
+          </button>
+        ))}
+      </div>
+
+      {editorMode === "text" ? (
+        <div className="p-4 max-w-2xl">
+          {value ? (
+            <div
+              className="prose prose-sm max-w-none text-slate-700 [&_a]:text-blue-600 [&_a]:underline [&_img]:rounded-lg [&_table]:border [&_table]:border-slate-300 [&_td]:border [&_td]:border-slate-300 [&_td]:p-2 [&_th]:border [&_th]:border-slate-300 [&_th]:p-2"
+              dangerouslySetInnerHTML={{ __html: value }}
+            />
+          ) : (
+            <span className="text-slate-400">—</span>
+          )}
+        </div>
+      ) : (
+        <pre className="whitespace-pre-wrap break-words p-4 font-mono text-xs text-slate-700 bg-slate-950/5 min-h-[120px]">
+          {value || ""}
+        </pre>
+      )}
+    </div>
+  );
+};
+
 const HeroStat = ({ icon: Icon, label, value }) => (
   <div className="flex items-center gap-2.5 rounded-xl bg-white/10 backdrop-blur-sm px-3.5 py-2.5 min-w-0">
     <Icon size={16} className="text-white/70 flex-shrink-0" />
@@ -1299,7 +1347,8 @@ const ViewCompany = () => {
 
   const handleToggleApprove = () => {
     if (!viewData?.id) return;
-    const nextStatus = viewData.company_status === "active" ? "pending" : "active";
+    const nextStatus =
+      viewData.company_status === "active" ? "pending" : "active";
     handleCompanyStatusChange(viewData.id, nextStatus);
   };
 
@@ -1450,7 +1499,7 @@ const ViewCompany = () => {
           No image
         </div>
       );
-    
+
     const fullUrl = getImageUrl(path);
     const fileName = getFileName(path);
     const isImage = isImageFile(path);
@@ -1480,14 +1529,18 @@ const ViewCompany = () => {
           className="absolute inset-0 bg-slate-900/0 group-hover:bg-slate-900/50 rounded-lg flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-200"
         >
           <span className="text-white text-xs font-medium flex items-center gap-1">
-            <MdOpenInNew size={13} /> {isImage ? 'View' : 'Open'}
+            <MdOpenInNew size={13} /> {isImage ? "View" : "Open"}
           </span>
         </button>
       </div>
     );
   };
 
-  const renderImage = (path, alt, className = "w-24 h-24 object-cover rounded-lg") => {
+  const renderImage = (
+    path,
+    alt,
+    className = "w-24 h-24 object-cover rounded-lg",
+  ) => {
     if (!path) return <span className="text-gray-400">No image</span>;
     const fullUrl = getImageUrl(path);
     const isImage = isImageFile(path);
@@ -1496,7 +1549,9 @@ const ViewCompany = () => {
     if (!isImage) {
       return (
         <div className="relative group inline-block">
-          <div className={`${className} border border-gray-200 shadow-sm bg-slate-50 flex flex-col items-center justify-center p-4`}>
+          <div
+            className={`${className} border border-gray-200 shadow-sm bg-slate-50 flex flex-col items-center justify-center p-4`}
+          >
             <MdDescription size={32} className="text-slate-400" />
             <span className="text-xs text-slate-500 text-center truncate w-full mt-2">
               {fileName}
@@ -1623,7 +1678,11 @@ const ViewCompany = () => {
                   : "bg-white text-slate-700 border border-slate-300 hover:bg-slate-50"
               }`}
             >
-              {approved ? <MdVerified size={18} /> : <MdCheckCircle size={18} />}
+              {approved ? (
+                <MdVerified size={18} />
+              ) : (
+                <MdCheckCircle size={18} />
+              )}
               {isTogglingThisCompany
                 ? "Updating..."
                 : approved
@@ -1753,7 +1812,11 @@ const ViewCompany = () => {
                     <motion.span
                       layoutId="view-company-tab-underline"
                       className="absolute left-2 right-2 -bottom-px h-0.5 bg-blue-600 rounded-full"
-                      transition={{ type: "spring", stiffness: 500, damping: 35 }}
+                      transition={{
+                        type: "spring",
+                        stiffness: 500,
+                        damping: 35,
+                      }}
                     />
                   )}
                 </button>
@@ -1776,7 +1839,9 @@ const ViewCompany = () => {
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                       <div className="sm:col-span-2">
                         <FieldLabel>Company name</FieldLabel>
-                        <ReadOnlyValue>{initialData.company_name}</ReadOnlyValue>
+                        <ReadOnlyValue>
+                          {initialData.company_name}
+                        </ReadOnlyValue>
                       </div>
                       <div>
                         <FieldLabel>Slug</FieldLabel>
@@ -1801,28 +1866,21 @@ const ViewCompany = () => {
                       </div>
                       <div>
                         <FieldLabel>Founded year</FieldLabel>
-                        <ReadOnlyValue>{initialData.founded_year || "—"}</ReadOnlyValue>
+                        <ReadOnlyValue>
+                          {initialData.founded_year || "—"}
+                        </ReadOnlyValue>
                       </div>
                       <div>
                         <FieldLabel>GST number</FieldLabel>
-                        <ReadOnlyValue>{initialData.gst_number || "—"}</ReadOnlyValue>
+                        <ReadOnlyValue>
+                          {initialData.gst_number || "—"}
+                        </ReadOnlyValue>
                       </div>
                     </div>
 
                     <div>
                       <FieldLabel>About company</FieldLabel>
-                      <div className="bg-slate-50 p-4 rounded-lg border border-slate-200 max-w-2xl">
-                        {initialData.about_company ? (
-                          <div
-                            className="prose prose-sm max-w-none text-slate-700 [&_a]:text-blue-600 [&_a]:underline [&_img]:rounded-lg [&_table]:border [&_table]:border-slate-300 [&_td]:border [&_td]:border-slate-300 [&_td]:p-2 [&_th]:border [&_th]:border-slate-300 [&_th]:p-2"
-                            dangerouslySetInnerHTML={{
-                              __html: initialData.about_company,
-                            }}
-                          />
-                        ) : (
-                          <span className="text-slate-400">—</span>
-                        )}
-                      </div>
+                      <RichTextViewer value={initialData.about_company || ""} />
                     </div>
 
                     <div className="border-t border-slate-100 pt-5 grid grid-cols-1 sm:grid-cols-2 gap-5">
@@ -1877,7 +1935,9 @@ const ViewCompany = () => {
 
                     <div>
                       <FieldLabel>Company size</FieldLabel>
-                      <ReadOnlyValue>{initialData.company_size_name}</ReadOnlyValue>
+                      <ReadOnlyValue>
+                        {initialData.company_size_name}
+                      </ReadOnlyValue>
                     </div>
                   </div>
                 )}
@@ -1899,7 +1959,7 @@ const ViewCompany = () => {
                             renderImage(
                               initialData.company_register_document,
                               "Registration Document",
-                              "w-32 h-24 object-cover rounded-lg"
+                              "w-32 h-24 object-cover rounded-lg",
                             )
                           ) : (
                             <span className="text-gray-400">No document</span>
@@ -1940,7 +2000,10 @@ const ViewCompany = () => {
                       <div className="flex-1">
                         <FieldLabel>Owner Aadhar number</FieldLabel>
                         <div className="flex items-center gap-2 font-mono text-sm bg-slate-50 px-3 py-2 rounded-lg border border-slate-200">
-                          <MdPermIdentity size={16} className="text-slate-400" />
+                          <MdPermIdentity
+                            size={16}
+                            className="text-slate-400"
+                          />
                           {initialData.owner_adharcard || "—"}
                         </div>
                       </div>

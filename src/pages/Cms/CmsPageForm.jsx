@@ -1,4 +1,3 @@
-
 // import React, { useState, useEffect, useRef } from "react";
 // import { useNavigate, useLocation, useParams } from "react-router-dom";
 // import { Editor } from "@tinymce/tinymce-react";
@@ -1114,11 +1113,15 @@ const getFullImageUrl = (value) => {
   if (!value) return null;
   if (typeof value === "object") {
     return getFullImageUrl(
-      value.url || value.uri || value.path || value.image || value.banner_image
+      value.url || value.uri || value.path || value.image || value.banner_image,
     );
   }
   if (typeof value !== "string") return null;
-  if (value.startsWith("http") || value.startsWith("data:image") || value.startsWith("blob:"))
+  if (
+    value.startsWith("http") ||
+    value.startsWith("data:image") ||
+    value.startsWith("blob:")
+  )
     return value;
   if (value.startsWith("/uploads/")) return `${API_BASE_URL}${value}`;
   if (value.startsWith("uploads/")) return `${API_BASE_URL}/${value}`;
@@ -1136,7 +1139,7 @@ const normalizeBannerImage = (value) => {
         value.path ||
         value.image ||
         value.banner_image ||
-        value.file
+        value.file,
     );
   }
   return null;
@@ -1188,8 +1191,120 @@ const StatusPill = ({ status }) => {
   );
 };
 
-// ─── Content view (read-only mode) ─────────────────────────────
-const CmsContentView = ({ value }) => {
+// ─── Rich text editor + HTML source toggle ─────────────────
+const RichTextEditorField = ({ value, onChange, height = 500 }) => {
+  const [editorMode, setEditorMode] = useState("text");
+  const editorRef = useRef(null);
+
+  const syncToEditor = (nextValue) => {
+    if (
+      editorRef.current &&
+      typeof editorRef.current.setContent === "function"
+    ) {
+      editorRef.current.setContent(nextValue || "", { format: "html" });
+    }
+  };
+
+  const handleModeChange = (nextMode) => {
+    if (nextMode === "html" && editorRef.current) {
+      const currentHtml = editorRef.current.getContent();
+      if (currentHtml !== value) {
+        onChange(currentHtml);
+      }
+    }
+
+    if (nextMode === "text") {
+      syncToEditor(value || "");
+    }
+
+    setEditorMode(nextMode);
+  };
+
+  return (
+    <div className="space-y-3">
+      <div className="flex gap-1 p-1 w-fit bg-slate-100 rounded-lg">
+        {[
+          ["text", "Text"],
+          ["html", "HTML"],
+        ].map(([tab, label]) => (
+          <button
+            key={tab}
+            type="button"
+            onClick={() => handleModeChange(tab)}
+            className={`px-3 py-1.5 text-sm font-medium rounded-md transition-all ${
+              editorMode === tab
+                ? "bg-white text-blue-600 shadow-sm"
+                : "text-slate-600 hover:text-slate-900"
+            }`}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
+
+      {editorMode === "text" ? (
+        <div className="border border-slate-200 rounded-xl overflow-hidden">
+          <Editor
+            tinymceScriptSrc="/tinymce/tinymce.min.js"
+            licenseKey="gpl"
+            value={value || ""}
+            onEditorChange={onChange}
+            onInit={(evt, editor) => {
+              editorRef.current = editor;
+              editor.setContent(value || "", { format: "html" });
+            }}
+            init={{
+              height,
+              menubar: false,
+              statusbar: true,
+              plugins: [
+                "advlist",
+                "autolink",
+                "lists",
+                "link",
+                "image",
+                "charmap",
+                "preview",
+                "anchor",
+                "searchreplace",
+                "visualblocks",
+                "code",
+                "fullscreen",
+                "insertdatetime",
+                "media",
+                "table",
+                "help",
+                "wordcount",
+              ],
+              toolbar:
+                "undo redo | blocks | bold italic underline strikethrough | " +
+                "alignleft aligncenter alignright alignjustify | " +
+                "bullist numlist outdent indent | link image table | " +
+                "forecolor backcolor | removeformat code | help",
+              content_style:
+                "body { font-family: 'Inter', sans-serif; font-size: 14px; line-height: 1.7; } p { margin: 0 0 10px; } h1, h2, h3, h4, h5, h6 { margin: 0 0 12px; line-height: 1.3; }",
+              placeholder: "Write the page content here…",
+              forced_root_block: "p",
+              verify_html: false,
+              cleanup: false,
+            }}
+          />
+        </div>
+      ) : (
+        <textarea
+          value={value || ""}
+          onChange={(e) => onChange(e.target.value)}
+          className="w-full min-h-[350px] px-4 py-3 bg-slate-950 text-slate-100 border border-slate-200 rounded-xl text-sm font-mono placeholder-slate-400 outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 focus:bg-slate-950 transition-all resize-y"
+          spellCheck={false}
+          rows={16}
+          placeholder="<!-- Write HTML here -->"
+        />
+      )}
+    </div>
+  );
+};
+
+const RichTextViewer = ({ value }) => {
   const [viewMode, setViewMode] = useState("text");
   const content = value || "";
 
@@ -1348,14 +1463,11 @@ const CmsPageForm = () => {
             banner_CTA_button: item.banner_CTA_button || "",
             content: item.content || "",
             status:
-              item.status === 1 || item.status === true
-                ? "active"
-                : "inactive",
+              item.status === 1 || item.status === true ? "active" : "inactive",
             is_menu_visible:
               item.is_menu_visible === 1 || item.is_menu_visible === true,
             is_footer_visible:
-              item.is_footer_visible === 1 ||
-              item.is_footer_visible === true,
+              item.is_footer_visible === 1 || item.is_footer_visible === true,
             display_order: item.display_order || 0,
             created_by: item.created_by || null,
             updated_by: item.updated_by || null,
@@ -1468,7 +1580,9 @@ const CmsPageForm = () => {
       newErrors.page_slug = "Slug must be at least 2 characters";
     } else if (formValues.page_slug.trim().length > 100) {
       newErrors.page_slug = "Slug must be at most 100 characters";
-    } else if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(formValues.page_slug.trim())) {
+    } else if (
+      !/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(formValues.page_slug.trim())
+    ) {
       newErrors.page_slug =
         "Slug can only contain lowercase letters, numbers, and hyphens";
     }
@@ -1560,7 +1674,7 @@ const CmsPageForm = () => {
       const message = error?.response?.data?.message || error?.message || "";
       if (/foreign\s*key|constraint/i.test(message)) {
         showError(
-          "Cannot delete this page because it is being used in other records."
+          "Cannot delete this page because it is being used in other records.",
         );
       } else {
         showError(message || "Failed to delete page");
@@ -1654,7 +1768,9 @@ const CmsPageForm = () => {
                   />
                 </div>
                 {errors.page_name && (
-                  <p className="text-xs text-red-500 mt-1">{errors.page_name}</p>
+                  <p className="text-xs text-red-500 mt-1">
+                    {errors.page_name}
+                  </p>
                 )}
               </div>
 
@@ -1683,7 +1799,9 @@ const CmsPageForm = () => {
                   />
                 </div>
                 {errors.page_slug ? (
-                  <p className="text-xs text-red-500 mt-1">{errors.page_slug}</p>
+                  <p className="text-xs text-red-500 mt-1">
+                    {errors.page_slug}
+                  </p>
                 ) : (
                   <p className="text-xs text-slate-500 mt-1.5">
                     {isViewMode
@@ -1908,135 +2026,14 @@ const CmsPageForm = () => {
 
       case "content":
         if (isViewMode) {
-          return <CmsContentView value={formValues.content} />;
+          return <RichTextViewer value={formValues.content} />;
         }
 
-        const editorKey = `${mode}-${id || "new"}-${data ? "loaded" : "loading"}-${editorMode}`;
-
         return (
-          <div className="space-y-3">
-            <div className="flex items-center gap-2">
-              <div className="flex gap-1 p-1 bg-slate-100 rounded-lg">
-                <button
-                  type="button"
-                  onClick={() => changeEditorMode("rich")}
-                  className={`px-3 py-1.5 text-sm font-medium rounded-md transition-all ${
-                    editorMode === "rich"
-                      ? "bg-white text-blue-600 shadow-sm"
-                      : "text-slate-600 hover:text-slate-900"
-                  }`}
-                >
-                  Text
-                </button>
-                <button
-                  type="button"
-                  onClick={() => changeEditorMode("html")}
-                  className={`px-3 py-1.5 text-sm font-medium rounded-md transition-all ${
-                    editorMode === "html"
-                      ? "bg-white text-blue-600 shadow-sm"
-                      : "text-slate-600 hover:text-slate-900"
-                  }`}
-                >
-                  HTML
-                </button>
-              </div>
-            </div>
-
-            {editorMode === "rich" && !tinyMceError ? (
-              <div className="border rounded-xl overflow-hidden border-slate-200">
-                <Editor
-                  key={editorKey}
-                  apiKey={TINYMCE_API_KEY}
-                  onInit={(evt, editor) => {
-                    editorRef.current = editor;
-                  }}
-                  onError={() => {
-                    console.error("TinyMCE failed to load");
-                    setTinyMceError(true);
-                  }}
-                  value={formValues.content || ""}
-                  onEditorChange={handleContentChange}
-                  init={{
-                    height: 500,
-                    menubar: true,
-                    statusbar: true,
-                    plugins: [
-                      "advlist",
-                      "autolink",
-                      "lists",
-                      "link",
-                      "image",
-                      "charmap",
-                      "preview",
-                      "anchor",
-                      "searchreplace",
-                      "visualblocks",
-                      "code",
-                      "fullscreen",
-                      "insertdatetime",
-                      "media",
-                      "table",
-                      "help",
-                      "wordcount",
-                    ],
-                    toolbar:
-                      "file undo redo | bold italic underline strikethrough | " +
-                      "fontfamily fontsize | alignleft aligncenter alignright alignjustify | " +
-                      "bullist numlist outdent indent | link image table | " +
-                      "forecolor backcolor | removeformat code | help",
-                    menu: {
-                      file: {
-                        title: "File",
-                        items: "newdocument restoredraft | preview | print ",
-                      },
-                      edit: {
-                        title: "Edit",
-                        items:
-                          "undo redo | cut copy paste pastetext | selectall ",
-                      },
-                      view: {
-                        title: "View",
-                        items: "visualaid visualblocks | code | fullscreen ",
-                      },
-                      insert: {
-                        title: "Insert",
-                        items: "image link media table | hr | pagebreak ",
-                      },
-                      format: {
-                        title: "Format",
-                        items:
-                          "bold italic underline strikethrough | formats | removeformat ",
-                      },
-                      tools: {
-                        title: "Tools",
-                        items: "searchreplace | spellcheckdialog ",
-                      },
-                      table: {
-                        title: "Table",
-                        items:
-                          "inserttable | cell row column | advtablesort | tableprops deletetable ",
-                      },
-                      help: { title: "Help", items: "help " },
-                    },
-                    content_style:
-                      "body { font-family: 'Inter', sans-serif; font-size: 14px; line-height: 1.7; } p { margin: 0 0 10px; } h1, h2, h3, h4, h5, h6 { margin: 0 0 12px; line-height: 1.3; }",
-                    placeholder: "Write the page content here…",
-                    forced_root_block: "p",
-                    verify_html: false,
-                    cleanup: false,
-                  }}
-                />
-              </div>
-            ) : (
-              <textarea
-                value={formValues.content || ""}
-                onChange={(e) => handleContentChange(e.target.value)}
-                className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 text-sm font-mono placeholder-slate-400 outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 focus:bg-white transition-all resize-y"
-                rows={16}
-                placeholder="<!-- Write HTML here -->"
-              />
-            )}
-          </div>
+          <RichTextEditorField
+            value={formValues.content || ""}
+            onChange={handleContentChange}
+          />
         );
 
       case "status":
@@ -2212,7 +2209,11 @@ const CmsPageForm = () => {
 
   // ─── Titles ──────────────────────────────────────────────────
   const heroTitle =
-    mode === "view" ? "CMS Page Details" : mode === "edit" ? "Edit CMS Page" : "Add New CMS Page";
+    mode === "view"
+      ? "CMS Page Details"
+      : mode === "edit"
+        ? "Edit CMS Page"
+        : "Add New CMS Page";
 
   // ─── Main render ─────────────────────────────────────────────
   return (
@@ -2273,8 +2274,8 @@ const CmsPageForm = () => {
                 {loading
                   ? "Saving..."
                   : mode === "edit"
-                  ? "Update Page"
-                  : "Create Page"}
+                    ? "Update Page"
+                    : "Create Page"}
               </button>
             )}
           </div>

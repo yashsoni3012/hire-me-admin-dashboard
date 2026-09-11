@@ -1,5 +1,3 @@
-
-
 // import React, { useState, useEffect } from "react";
 // import { useNavigate } from "react-router-dom";
 // import { MdArrowBack, MdSave, MdCancel } from "react-icons/md";
@@ -615,7 +613,7 @@
 //                   </div>
 
 //                   {/* Internal Status (commented out) */}
-//                   {/* 
+//                   {/*
 //                   <div>
 //                     <label className="text-xs font-medium text-gray-500 uppercase tracking-wider">
 //                       Internal Status
@@ -737,9 +735,9 @@
 // export default AddCompany;
 
 // pages/companies/AddCompany.jsx
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
+import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   MdArrowBack,
   MdSave,
@@ -756,43 +754,43 @@ import {
   MdErrorOutline,
   MdLink,
   MdOpenInNew,
-} from 'react-icons/md';
-import companyService from '../../services/company.service';
-import subIndustryService from '../../services/subIndustry.service';
-import { useAuth } from '../../context/AuthContext';
-import { showSuccess, showError } from '../../utils/toast';
-import { Editor } from '@tinymce/tinymce-react';
+} from "react-icons/md";
+import companyService from "../../services/company.service";
+import subIndustryService from "../../services/subIndustry.service";
+import { useAuth } from "../../context/AuthContext";
+import { showSuccess, showError } from "../../utils/toast";
+import { Editor } from "@tinymce/tinymce-react";
 
 const API_BASE =
-  import.meta.env.VITE_API_URL || 'https://apidata.hiremejobs.in';
+  import.meta.env.VITE_API_URL || "https://apidata.hiremejobs.in";
 
 // Helper: build full image URL (only used for previews)
 const getImageUrl = (path) => {
   if (!path) return null;
-  if (path.startsWith('http://') || path.startsWith('https://')) return path;
+  if (path.startsWith("http://") || path.startsWith("https://")) return path;
   return `${API_BASE}${path}`;
 };
 
 // ─── Status styles ─────────────────────────────────────────────
 const STATUS_STYLES = {
   active: {
-    pill: 'bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200',
-    dot: 'bg-emerald-500',
+    pill: "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200",
+    dot: "bg-emerald-500",
     icon: MdCheckCircle,
   },
   inactive: {
-    pill: 'bg-slate-100 text-slate-500 ring-1 ring-slate-200',
-    dot: 'bg-slate-400',
+    pill: "bg-slate-100 text-slate-500 ring-1 ring-slate-200",
+    dot: "bg-slate-400",
     icon: MdErrorOutline,
   },
   pending: {
-    pill: 'bg-amber-50 text-amber-700 ring-1 ring-amber-200',
-    dot: 'bg-amber-500',
+    pill: "bg-amber-50 text-amber-700 ring-1 ring-amber-200",
+    dot: "bg-amber-500",
     icon: MdErrorOutline,
   },
   blocked: {
-    pill: 'bg-red-50 text-red-700 ring-1 ring-red-200',
-    dot: 'bg-red-500',
+    pill: "bg-red-50 text-red-700 ring-1 ring-red-200",
+    dot: "bg-red-500",
     icon: MdErrorOutline,
   },
 };
@@ -805,7 +803,7 @@ const StatusPill = ({ status }) => {
       className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold ${style.pill}`}
     >
       <Icon size={13} />
-      {status ? status.charAt(0).toUpperCase() + status.slice(1) : 'Unknown'}
+      {status ? status.charAt(0).toUpperCase() + status.slice(1) : "Unknown"}
     </span>
   );
 };
@@ -828,12 +826,91 @@ const FieldLabel = ({ children, required }) => (
   </label>
 );
 
+const RichTextEditorField = ({ value, onChange, height = 280 }) => {
+  const [editorMode, setEditorMode] = useState("text");
+
+  return (
+    <div className="border border-slate-300 rounded-lg overflow-hidden">
+      <div className="flex items-center gap-1 border-b border-slate-200 bg-slate-50 px-2 py-1.5">
+        {["text", "html"].map((mode) => (
+          <button
+            key={mode}
+            type="button"
+            onClick={() => setEditorMode(mode)}
+            className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${
+              editorMode === mode
+                ? "bg-white text-slate-800 shadow-sm border border-slate-200"
+                : "text-slate-500 hover:text-slate-700"
+            }`}
+          >
+            {mode === "text" ? "Text" : "HTML"}
+          </button>
+        ))}
+      </div>
+
+      {editorMode === "text" ? (
+        <Editor
+          tinymceScriptSrc="/tinymce/tinymce.min.js"
+          licenseKey="gpl"
+          value={value || ""}
+          onEditorChange={(content) => onChange(content)}
+          init={{
+            height,
+            menubar: false,
+            plugins: [
+              "advlist",
+              "autolink",
+              "lists",
+              "link",
+              "image",
+              "charmap",
+              "preview",
+              "anchor",
+              "searchreplace",
+              "visualblocks",
+              "code",
+              "fullscreen",
+              "insertdatetime",
+              "media",
+              "table",
+              "help",
+              "wordcount",
+            ],
+            toolbar:
+              "undo redo | blocks | bold italic underline forecolor | " +
+              "alignleft aligncenter alignright alignjustify | " +
+              "bullist numlist outdent indent | link image table | " +
+              "removeformat code | help",
+            content_style:
+              "body { font-family:'Inter',sans-serif; font-size:14px }",
+            image_advtab: true,
+            images_upload_handler: (blobInfo) =>
+              new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = () => reject("Image upload failed");
+                reader.readAsDataURL(blobInfo.blob());
+              }),
+          }}
+        />
+      ) : (
+        <textarea
+          value={value || ""}
+          onChange={(event) => onChange(event.target.value)}
+          spellCheck={false}
+          className="w-full min-h-[280px] resize-y bg-slate-950 text-slate-100 p-3 font-mono text-xs leading-6 outline-none"
+        />
+      )}
+    </div>
+  );
+};
+
 // ─── Tabs ──────────────────────────────────────────────────────
 const TABS = [
-  { id: 'overview', label: 'Overview', icon: MdBusiness },
-  { id: 'relations', label: 'Relations', icon: MdCategory },
-  { id: 'media', label: 'Media', icon: MdImage },
-  { id: 'status', label: 'Status & Flags', icon: MdFlag },
+  { id: "overview", label: "Overview", icon: MdBusiness },
+  { id: "relations", label: "Relations", icon: MdCategory },
+  { id: "media", label: "Media", icon: MdImage },
+  { id: "status", label: "Status & Flags", icon: MdFlag },
 ];
 
 // ─── Main Component ──────────────────────────────────────────
@@ -842,7 +919,7 @@ const AddCompany = () => {
   const { user, token } = useAuth();
   const userId = user?.id || 1;
   const [loading, setLoading] = useState(false);
-  const [activeTab, setActiveTab] = useState('overview');
+  const [activeTab, setActiveTab] = useState("overview");
 
   // ─── Dropdown data states ────────────────────────────────────
   const [companyUsers, setCompanyUsers] = useState([]);
@@ -877,8 +954,8 @@ const AddCompany = () => {
         setIndustries(extractList(industriesRes));
         setSubIndustries(extractList(subIndustriesRes));
       } catch (err) {
-        console.error('Error loading dropdown data:', err);
-        showError('Failed to load dropdown data');
+        console.error("Error loading dropdown data:", err);
+        showError("Failed to load dropdown data");
       } finally {
         setLoadingData(false);
       }
@@ -888,20 +965,20 @@ const AddCompany = () => {
 
   // ─── Form state ──────────────────────────────────────────────
   const [formValues, setFormValues] = useState({
-    company_name: '',
-    slug: '',
-    website: '',
-    founded_year: '',
-    about_company: '',
-    gst_number: '',
-    company_user_id: '',
-    industry_id: '',
-    sub_industry_id: '',
-    company_size_id: '',
+    company_name: "",
+    slug: "",
+    website: "",
+    founded_year: "",
+    about_company: "",
+    gst_number: "",
+    company_user_id: "",
+    industry_id: "",
+    sub_industry_id: "",
+    company_size_id: "",
     logo: null,
     banner_image: null,
-    company_status: 'active',
-    is_status: 'active',
+    company_status: "active",
+    is_status: "active",
     is_trending: false,
   });
 
@@ -913,17 +990,17 @@ const AddCompany = () => {
     const { name, value, type, checked } = e.target;
     setFormValues((prev) => ({
       ...prev,
-      [name]: type === 'checkbox' ? checked : value,
+      [name]: type === "checkbox" ? checked : value,
     }));
   };
 
   const handleFileChange = (e, field) => {
     const file = e.target.files[0];
     if (file) {
-      if (field === 'logo') {
+      if (field === "logo") {
         setFileLogo(file);
         setFormValues((prev) => ({ ...prev, logo: URL.createObjectURL(file) }));
-      } else if (field === 'banner_image') {
+      } else if (field === "banner_image") {
         setFileBanner(file);
         setFormValues((prev) => ({
           ...prev,
@@ -936,15 +1013,15 @@ const AddCompany = () => {
   const handleRemoveLogo = () => {
     setFileLogo(null);
     setFormValues((prev) => ({ ...prev, logo: null }));
-    const el = document.getElementById('logo-upload');
-    if (el) el.value = '';
+    const el = document.getElementById("logo-upload");
+    if (el) el.value = "";
   };
 
   const handleRemoveBanner = () => {
     setFileBanner(null);
     setFormValues((prev) => ({ ...prev, banner_image: null }));
-    const el = document.getElementById('banner-upload');
-    if (el) el.value = '';
+    const el = document.getElementById("banner-upload");
+    if (el) el.value = "";
   };
 
   // ─── Dropdown options ────────────────────────────────────────
@@ -976,15 +1053,15 @@ const AddCompany = () => {
   // ─── Validation ──────────────────────────────────────────────
   const validate = () => {
     if (!formValues.company_name?.trim()) {
-      showError('Company name is required');
+      showError("Company name is required");
       return false;
     }
     if (formValues.company_name.trim().length < 2) {
-      showError('Company name must be at least 2 characters');
+      showError("Company name must be at least 2 characters");
       return false;
     }
     if (formValues.company_name.trim().length > 100) {
-      showError('Company name must be at most 100 characters');
+      showError("Company name must be at most 100 characters");
       return false;
     }
     if (
@@ -993,7 +1070,7 @@ const AddCompany = () => {
         formValues.website,
       )
     ) {
-      showError('Please enter a valid URL');
+      showError("Please enter a valid URL");
       return false;
     }
     if (formValues.founded_year) {
@@ -1016,47 +1093,47 @@ const AddCompany = () => {
     setLoading(true);
     try {
       const payload = new FormData();
-      payload.append('company_name', formValues.company_name.trim());
+      payload.append("company_name", formValues.company_name.trim());
       payload.append(
-        'slug',
+        "slug",
         formValues.slug.trim() ||
-          formValues.company_name.trim().toLowerCase().replace(/\s+/g, '-'),
+          formValues.company_name.trim().toLowerCase().replace(/\s+/g, "-"),
       );
-      payload.append('website', formValues.website?.trim() || '');
-      payload.append('founded_year', formValues.founded_year || '');
-      payload.append('about_company', formValues.about_company?.trim() || '');
-      payload.append('gst_number', formValues.gst_number?.trim() || '');
-      payload.append('company_status', formValues.company_status);
+      payload.append("website", formValues.website?.trim() || "");
+      payload.append("founded_year", formValues.founded_year || "");
+      payload.append("about_company", formValues.about_company?.trim() || "");
+      payload.append("gst_number", formValues.gst_number?.trim() || "");
+      payload.append("company_status", formValues.company_status);
       payload.append(
-        'is_status',
-        formValues.is_status === 'active' ? 'true' : 'false',
+        "is_status",
+        formValues.is_status === "active" ? "true" : "false",
       );
-      payload.append('is_trending', formValues.is_trending ? 'true' : 'false');
-      payload.append('created_by', userId);
-      payload.append('updated_by', userId);
+      payload.append("is_trending", formValues.is_trending ? "true" : "false");
+      payload.append("created_by", userId);
+      payload.append("updated_by", userId);
 
       if (formValues.company_user_id) {
-        payload.append('company_user_id', formValues.company_user_id);
+        payload.append("company_user_id", formValues.company_user_id);
       }
       if (formValues.company_size_id) {
-        payload.append('company_size_id', formValues.company_size_id);
+        payload.append("company_size_id", formValues.company_size_id);
       }
       if (formValues.industry_id) {
-        payload.append('industry_id', formValues.industry_id);
+        payload.append("industry_id", formValues.industry_id);
       }
       if (formValues.sub_industry_id) {
-        payload.append('sub_industry_id', formValues.sub_industry_id);
+        payload.append("sub_industry_id", formValues.sub_industry_id);
       }
 
       if (fileLogo instanceof File) {
-        payload.append('logo', fileLogo);
+        payload.append("logo", fileLogo);
       }
       if (fileBanner instanceof File) {
-        payload.append('banner_image', fileBanner);
+        payload.append("banner_image", fileBanner);
       }
 
       const response = await fetch(`${API_BASE}/companies`, {
-        method: 'POST',
+        method: "POST",
         headers: { Authorization: `Bearer ${token}` },
         body: payload,
       });
@@ -1066,33 +1143,33 @@ const AddCompany = () => {
         throw new Error(errorText || `HTTP error ${response.status}`);
       }
 
-      showSuccess('Company created successfully');
-      navigate('/companies');
+      showSuccess("Company created successfully");
+      navigate("/companies");
     } catch (error) {
-      console.error('Submit error:', error);
-      showError(error.message || 'Failed to create company');
+      console.error("Submit error:", error);
+      showError(error.message || "Failed to create company");
     } finally {
       setLoading(false);
     }
   };
 
-  const handleBack = () => navigate('/companies');
+  const handleBack = () => navigate("/companies");
 
   // ─── Render helpers ──────────────────────────────────────────
   const renderImagePreview = (
     path,
-    alt = 'Image',
-    className = 'w-20 h-20 object-cover rounded-lg',
+    alt = "Image",
+    className = "w-20 h-20 object-cover rounded-lg",
   ) => {
     if (!path) return null;
     return (
       <div className="relative group inline-block">
         <img
-          src={path.startsWith('blob:') ? path : getImageUrl(path)}
+          src={path.startsWith("blob:") ? path : getImageUrl(path)}
           alt={alt}
           className={`${className} border border-slate-200 shadow-sm`}
           onError={(e) => {
-            e.target.style.display = 'none';
+            e.target.style.display = "none";
           }}
         />
       </div>
@@ -1112,24 +1189,24 @@ const AddCompany = () => {
   }
 
   // ─── Compute hero data ────────────────────────────────────
-  const companyName = formValues.company_name?.trim() || 'New Company';
-  const companyStatus = formValues.company_status || 'active';
+  const companyName = formValues.company_name?.trim() || "New Company";
+  const companyStatus = formValues.company_status || "active";
   const isTrending = formValues.is_trending || false;
 
   const initials = companyName
-    .split(' ')
+    .split(" ")
     .filter(Boolean)
     .slice(0, 2)
     .map((w) => w[0]?.toUpperCase())
-    .join('');
+    .join("");
 
   // ─── Render tab content ────────────────────────────────────
   const renderTabContent = () => {
     const commonClass =
-      'w-full px-3.5 py-2.5 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-100 focus:border-blue-400 transition-colors bg-white';
+      "w-full px-3.5 py-2.5 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-100 focus:border-blue-400 transition-colors bg-white";
 
     switch (activeTab) {
-      case 'overview':
+      case "overview":
         return (
           <div className="space-y-5">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
@@ -1194,62 +1271,20 @@ const AddCompany = () => {
 
             <div>
               <FieldLabel>About Company</FieldLabel>
-              <div className="border border-slate-300 rounded-lg overflow-hidden">
-                <Editor
-                  tinymceScriptSrc="/tinymce/tinymce.min.js"
-                  licenseKey="gpl"
-                  value={formValues.about_company || ''}
-                  onEditorChange={(content) =>
-                    setFormValues((prev) => ({
-                      ...prev,
-                      about_company: content,
-                    }))
-                  }
-                  init={{
-                    height: 280,
-                    menubar: false,
-                    plugins: [
-                      'advlist',
-                      'autolink',
-                      'lists',
-                      'link',
-                      'image',
-                      'charmap',
-                      'preview',
-                      'anchor',
-                      'searchreplace',
-                      'visualblocks',
-                      'code',
-                      'fullscreen',
-                      'insertdatetime',
-                      'media',
-                      'table',
-                      'help',
-                      'wordcount',
-                    ],
-                    toolbar:
-                      'undo redo | blocks | bold italic underline forecolor | ' +
-                      'alignleft aligncenter alignright alignjustify | ' +
-                      'bullist numlist outdent indent | link image table | ' +
-                      'removeformat code | help',
-                    content_style:
-                      "body { font-family:'Inter',sans-serif; font-size:14px }",
-                    image_advtab: true,
-                    images_upload_handler: (blobInfo) =>
-                      new Promise((resolve, reject) => {
-                        const reader = new FileReader();
-                        reader.onload = () => resolve(reader.result);
-                        reader.onerror = () => reject('Image upload failed');
-                        reader.readAsDataURL(blobInfo.blob());
-                      }),
-                  }}
-                />
-              </div>
+              <RichTextEditorField
+                value={formValues.about_company || ""}
+                onChange={(content) =>
+                  setFormValues((prev) => ({
+                    ...prev,
+                    about_company: content,
+                  }))
+                }
+              />
             </div>
           </div>
         );
 
-      case 'relations':
+      case "relations":
         return (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
             <div>
@@ -1262,7 +1297,7 @@ const AddCompany = () => {
                 disabled={loadingData}
               >
                 <option value="">
-                  {loadingData ? 'Loading...' : 'Select a user'}
+                  {loadingData ? "Loading..." : "Select a user"}
                 </option>
                 {userOptions.map((opt) => (
                   <option key={opt.value} value={opt.value}>
@@ -1281,7 +1316,7 @@ const AddCompany = () => {
                 disabled={loadingData}
               >
                 <option value="">
-                  {loadingData ? 'Loading...' : 'Select an industry'}
+                  {loadingData ? "Loading..." : "Select an industry"}
                 </option>
                 {industryOptions.map((opt) => (
                   <option key={opt.value} value={opt.value}>
@@ -1300,7 +1335,7 @@ const AddCompany = () => {
                 disabled={loadingData}
               >
                 <option value="">
-                  {loadingData ? 'Loading...' : 'Select a sub-industry'}
+                  {loadingData ? "Loading..." : "Select a sub-industry"}
                 </option>
                 {subIndustryOptions.map((opt) => (
                   <option key={opt.value} value={opt.value}>
@@ -1319,7 +1354,7 @@ const AddCompany = () => {
                 disabled={loadingData}
               >
                 <option value="">
-                  {loadingData ? 'Loading...' : 'Select a size'}
+                  {loadingData ? "Loading..." : "Select a size"}
                 </option>
                 {sizeOptions.map((opt) => (
                   <option key={opt.value} value={opt.value}>
@@ -1331,7 +1366,7 @@ const AddCompany = () => {
           </div>
         );
 
-      case 'media':
+      case "media":
         return (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
             <div>
@@ -1341,8 +1376,8 @@ const AddCompany = () => {
                   <div className="relative group">
                     {renderImagePreview(
                       formValues.logo,
-                      'Logo',
-                      'w-20 h-20 object-cover rounded-lg',
+                      "Logo",
+                      "w-20 h-20 object-cover rounded-lg",
                     )}
                     <button
                       type="button"
@@ -1373,7 +1408,7 @@ const AddCompany = () => {
                   <input
                     type="file"
                     accept="image/*"
-                    onChange={(e) => handleFileChange(e, 'logo')}
+                    onChange={(e) => handleFileChange(e, "logo")}
                     className="hidden"
                     id="logo-upload"
                   />
@@ -1382,7 +1417,7 @@ const AddCompany = () => {
                     className="px-4 py-2 bg-blue-50 text-[#2c0eee] rounded-lg cursor-pointer hover:bg-blue-100 transition-colors text-sm font-medium inline-flex items-center gap-2"
                   >
                     <MdCloudUpload size={16} />
-                    {formValues.logo ? 'Change Logo' : 'Choose Logo'}
+                    {formValues.logo ? "Change Logo" : "Choose Logo"}
                   </label>
                   <p className="mt-1 text-xs text-slate-400">
                     PNG, JPG, SVG (Max 5MB)
@@ -1398,8 +1433,8 @@ const AddCompany = () => {
                   <div className="relative group">
                     {renderImagePreview(
                       formValues.banner_image,
-                      'Banner',
-                      'w-40 h-20 object-cover rounded-lg',
+                      "Banner",
+                      "w-40 h-20 object-cover rounded-lg",
                     )}
                     <button
                       type="button"
@@ -1430,7 +1465,7 @@ const AddCompany = () => {
                   <input
                     type="file"
                     accept="image/*"
-                    onChange={(e) => handleFileChange(e, 'banner_image')}
+                    onChange={(e) => handleFileChange(e, "banner_image")}
                     className="hidden"
                     id="banner-upload"
                   />
@@ -1439,7 +1474,9 @@ const AddCompany = () => {
                     className="px-4 py-2 bg-blue-50 text-[#2c0eee] rounded-lg cursor-pointer hover:bg-blue-100 transition-colors text-sm font-medium inline-flex items-center gap-2"
                   >
                     <MdCloudUpload size={16} />
-                    {formValues.banner_image ? 'Change Banner' : 'Choose Banner'}
+                    {formValues.banner_image
+                      ? "Change Banner"
+                      : "Choose Banner"}
                   </label>
                   <p className="mt-1 text-xs text-slate-400">
                     PNG, JPG (Max 5MB)
@@ -1450,13 +1487,13 @@ const AddCompany = () => {
           </div>
         );
 
-      case 'status':
+      case "status":
         return (
           <div className="space-y-6 max-w-xl">
             <div>
               <FieldLabel required>Company Status</FieldLabel>
               <div className="flex flex-wrap gap-6 pt-1">
-                {['active', 'inactive', 'pending', 'blocked'].map((s) => (
+                {["active", "inactive", "pending", "blocked"].map((s) => (
                   <label
                     key={s}
                     className="flex items-center gap-2.5 cursor-pointer"
@@ -1495,8 +1532,8 @@ const AddCompany = () => {
                 </label>
                 <span className="text-sm text-slate-600">
                   {formValues.is_trending
-                    ? 'Marked as trending'
-                    : 'Not trending'}
+                    ? "Marked as trending"
+                    : "Not trending"}
                 </span>
               </div>
               <p className="text-xs text-slate-400 mt-1.5">
@@ -1555,7 +1592,7 @@ const AddCompany = () => {
               ) : (
                 <MdSave size={16} />
               )}
-              {loading ? 'Creating...' : 'Create Company'}
+              {loading ? "Creating..." : "Create Company"}
             </button>
           </div>
         </div>
@@ -1566,7 +1603,7 @@ const AddCompany = () => {
         <motion.div
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.35, ease: 'easeOut' }}
+          transition={{ duration: 0.35, ease: "easeOut" }}
           className="relative rounded-2xl overflow-hidden shadow-lg shadow-slate-900/5"
         >
           <div className="relative h-44 sm:h-52 bg-gradient-to-br from-slate-950 via-indigo-950 to-purple-950">
@@ -1583,14 +1620,14 @@ const AddCompany = () => {
                 {formValues.logo ? (
                   <img
                     src={
-                      formValues.logo.startsWith('blob:')
+                      formValues.logo.startsWith("blob:")
                         ? formValues.logo
                         : getImageUrl(formValues.logo)
                     }
                     alt="Logo"
                     className="w-full h-full rounded-xl object-cover"
                     onError={(e) => {
-                      e.target.style.display = 'none';
+                      e.target.style.display = "none";
                     }}
                   />
                 ) : (
@@ -1612,7 +1649,7 @@ const AddCompany = () => {
                   {formValues.website ? (
                     <a
                       href={
-                        formValues.website.startsWith('http')
+                        formValues.website.startsWith("http")
                           ? formValues.website
                           : `https://${formValues.website}`
                       }
@@ -1636,9 +1673,7 @@ const AddCompany = () => {
           <div className="flex items-center gap-2.5 rounded-xl bg-white/80 backdrop-blur-sm px-3.5 py-2.5 border border-slate-200 shadow-sm">
             <MdFlag size={16} className="text-slate-400 flex-shrink-0" />
             <div className="min-w-0">
-              <p className="text-[10px] text-slate-500 leading-tight">
-                Status
-              </p>
+              <p className="text-[10px] text-slate-500 leading-tight">Status</p>
               <p className="text-sm font-semibold text-slate-700 truncate capitalize">
                 {companyStatus}
               </p>
@@ -1651,9 +1686,8 @@ const AddCompany = () => {
                 Industry
               </p>
               <p className="text-sm font-semibold text-slate-700 truncate">
-                {industryOptions.find(
-                  (o) => o.value === formValues.industry_id,
-                )?.label || '—'}
+                {industryOptions.find((o) => o.value === formValues.industry_id)
+                  ?.label || "—"}
               </p>
             </div>
           </div>
@@ -1664,9 +1698,8 @@ const AddCompany = () => {
                 Company User
               </p>
               <p className="text-sm font-semibold text-slate-700 truncate">
-                {userOptions.find(
-                  (o) => o.value === formValues.company_user_id,
-                )?.label || '—'}
+                {userOptions.find((o) => o.value === formValues.company_user_id)
+                  ?.label || "—"}
               </p>
             </div>
           </div>
@@ -1675,8 +1708,8 @@ const AddCompany = () => {
             <div className="min-w-0">
               <p className="text-[10px] text-slate-500 leading-tight">Media</p>
               <p className="text-sm font-semibold text-slate-700 truncate">
-                {formValues.logo ? 'Logo ✓' : 'No logo'}
-                {formValues.banner_image ? ' & Banner ✓' : ''}
+                {formValues.logo ? "Logo ✓" : "No logo"}
+                {formValues.banner_image ? " & Banner ✓" : ""}
               </p>
             </div>
           </div>
@@ -1695,8 +1728,8 @@ const AddCompany = () => {
                   onClick={() => setActiveTab(tab.id)}
                   className={`relative flex items-center gap-1.5 px-4 py-3.5 text-sm font-medium whitespace-nowrap transition-colors ${
                     active
-                      ? 'text-blue-600'
-                      : 'text-slate-500 hover:text-slate-700'
+                      ? "text-blue-600"
+                      : "text-slate-500 hover:text-slate-700"
                   }`}
                 >
                   <Icon size={16} />
@@ -1706,7 +1739,7 @@ const AddCompany = () => {
                       layoutId="add-company-tab-underline"
                       className="absolute left-2 right-2 -bottom-px h-0.5 bg-blue-600 rounded-full"
                       transition={{
-                        type: 'spring',
+                        type: "spring",
                         stiffness: 500,
                         damping: 35,
                       }}
@@ -1748,7 +1781,7 @@ const AddCompany = () => {
                           Creating...
                         </span>
                       ) : (
-                        'Create Company'
+                        "Create Company"
                       )}
                     </button>
                   </div>
