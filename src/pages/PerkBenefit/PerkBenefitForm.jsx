@@ -1117,7 +1117,6 @@ const PerkBenefitForm = () => {
                     {perkName}
                   </h1>
                   <StatusPill status={status} />
-                  {isTrending && <TrendingBadge trending={true} />}
                 </div>
                 <div className="mt-2 flex items-center gap-2 flex-wrap">
                   <span className="text-xs text-slate-300 flex items-center gap-1">
@@ -1145,7 +1144,7 @@ const PerkBenefitForm = () => {
         </motion.div>
 
         {/* ─── Quick stat strip (light) ────────────────────────── */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-4">
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mt-4">
           <div className="flex items-center gap-2.5 rounded-xl bg-white/80 backdrop-blur-sm px-3.5 py-2.5 border border-slate-200 shadow-sm">
             <MdInfo size={16} className="text-slate-400 flex-shrink-0" />
             <div className="min-w-0">
@@ -1155,15 +1154,7 @@ const PerkBenefitForm = () => {
               </p>
             </div>
           </div>
-          <div className="flex items-center gap-2.5 rounded-xl bg-white/80 backdrop-blur-sm px-3.5 py-2.5 border border-slate-200 shadow-sm">
-            <MdTrendingUp size={16} className="text-slate-400 flex-shrink-0" />
-            <div className="min-w-0">
-              <p className="text-[10px] text-slate-500 leading-tight">Trending</p>
-              <p className="text-sm font-semibold text-slate-700 truncate">
-                {isTrending ? 'Yes' : 'No'}
-              </p>
-            </div>
-          </div>
+         
           <div className="flex items-center gap-2.5 rounded-xl bg-white/80 backdrop-blur-sm px-3.5 py-2.5 border border-slate-200 shadow-sm">
             <MdCategory size={16} className="text-slate-400 flex-shrink-0" />
             <div className="min-w-0">

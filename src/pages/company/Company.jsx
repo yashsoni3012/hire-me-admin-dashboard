@@ -1,4 +1,3 @@
-
 // import { useState, useEffect, useMemo, useCallback, useRef } from "react";
 // import { useNavigate } from "react-router-dom";
 // import Table from "../../components/common/Table";
@@ -903,8 +902,6 @@
 
 // export default Companies;
 
-
-
 import { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import Table from "../../components/common/Table";
@@ -1583,18 +1580,26 @@ const Companies = () => {
       key: "id",
       render: (id, row) => (
         <div className="flex gap-1">
-          <button
+          {/* <button
             onClick={() => openView(row)}
             className="p-1.5 hover:bg-gray-100 text-gray-400 hover:text-gray-600 rounded-lg transition-colors"
             title="View"
           >
             <MdVisibility size={16} />
+          </button> */}
+          <button
+            onClick={() => openView(row)}
+            className="flex items-center gap-1.5 px-3 py-1.5 hover:bg-blue-50 text-blue-600 rounded-lg transition-colors text-sm font-medium whitespace-nowrap"
+            title="View Company Details"
+          >
+            <MdVisibility size={16} />
+            <span>View Company Details</span>
           </button>
           <button
             onClick={() => openEdit(row)}
             className="p-1.5 hover:bg-blue-50 text-blue-600 rounded-lg transition-colors"
             title="Edit"
-          > 
+          >
             <MdEdit size={16} />
           </button>
           <button

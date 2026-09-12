@@ -192,6 +192,9 @@ import AddSalary from "../pages/Salary/AddSalary";
 import EditSalary from "../pages/Salary/EditSalary";
 import ViewSalary from "../pages/Salary/ViewSalary";
 import SubscriptionPlanFeatureBulkEdit from "../pages/SubscriptionPlanFeatures/SubscriptionPlanFeatureBulkEdit";
+import SearchCandidates from "../pages/search/SearchCandidates";
+import ViewSearchCandidate from "../pages/Search/ViewSearchCandidate";
+
 const AppRoutes = () => (
   <BrowserRouter>
     <Routes>
@@ -728,6 +731,9 @@ const AppRoutes = () => (
           <Route path="/company-sizes/add" element={<AddCompanySize />} />
           <Route path="/company-sizes/edit/:id" element={<EditCompanySize />} />
           <Route path="/company-sizes/view/:id" element={<ViewCompanySize />} />
+
+          <Route path="/search-candidates" element={<SearchCandidates/>} />
+           <Route path="/search-candidates/view/:id" element={<ViewSearchCandidate />} />
 
           {/* <Route path="/notifications" element={<Notification />} /> */}
           <Route path="/settings" element={<Settings />} />

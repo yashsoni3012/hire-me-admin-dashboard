@@ -265,21 +265,21 @@ const CandidateFaq = () => {
         </div>
       ),
     },
-    {
-      header: "Answer",
-      key: "answer",
-      width: "300px",
-      render: (v) => {
-        const answer = v || '';
-        return (
-          <div className="max-w-sm" title={answer}>
-            <span className="text-gray-600 text-sm line-clamp-2">
-              {answer.length > 70 ? answer.substring(0, 70) + '...' : answer || '-'}
-            </span>
-          </div>
-        );
-      },
-    },
+    // {
+    //   header: "Answer",
+    //   key: "answer",
+    //   width: "300px",
+    //   render: (v) => {
+    //     const answer = v || '';
+    //     return (
+    //       <div className="max-w-sm" title={answer}>
+    //         <span className="text-gray-600 text-sm line-clamp-2">
+    //           {answer.length > 70 ? answer.substring(0, 70) + '...' : answer || '-'}
+    //         </span>
+    //       </div>
+    //     );
+    //   },
+    // },
     {
       header: "Trending",
       key: "is_trending",

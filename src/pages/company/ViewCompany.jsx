@@ -493,9 +493,9 @@ const SubscriptionHistorySection = ({ state, onRetry }) => {
               className="w-full flex items-center gap-4 px-4 py-3.5 text-left hover:bg-slate-50/60 transition-colors"
             >
               <IndexBadge index={idx + 1} />
-              <div className="w-9 h-9 rounded-lg bg-blue-50 flex items-center justify-center flex-shrink-0">
+              {/* <div className="w-9 h-9 rounded-lg bg-blue-50 flex items-center justify-center flex-shrink-0">
                 <MdPayments size={18} className="text-blue-600" />
-              </div>
+              </div> */}
               <div className="flex-1 min-w-0 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-x-4 gap-y-1">
                 <div className="min-w-0">
                   <p className="text-[11px] text-slate-400 leading-tight">
@@ -773,9 +773,9 @@ const JobsSection = ({
                   className="w-full flex items-center gap-4 px-4 py-3.5 text-left hover:bg-slate-50/60 transition-colors"
                 >
                   <IndexBadge index={displayIndex} />
-                  <div className="w-9 h-9 rounded-lg bg-blue-50 flex items-center justify-center flex-shrink-0">
+                  {/* <div className="w-9 h-9 rounded-lg bg-blue-50 flex items-center justify-center flex-shrink-0">
                     <MdWork size={18} className="text-blue-600" />
-                  </div>
+                  </div> */}
                   <div className="flex-1 min-w-0 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-x-4 gap-y-1">
                     <div className="min-w-0">
                       <p className="text-[11px] text-slate-400 leading-tight">
@@ -1105,9 +1105,9 @@ const SearchHistorySection = ({ state, onRetry }) => {
           >
             <IndexBadge index={idx + 1} />
 
-            <div className="w-9 h-9 rounded-lg bg-blue-50 flex items-center justify-center flex-shrink-0">
+            {/* <div className="w-9 h-9 rounded-lg bg-blue-50 flex items-center justify-center flex-shrink-0">
               <MdSearch size={16} className="text-blue-600" />
-            </div>
+            </div> */}
 
             <div className="flex-1 min-w-0">
               <p className="text-sm font-semibold text-slate-800 truncate">

@@ -246,11 +246,11 @@ export const menuItems = [
       { label: 'Candidate Testimonials', path: '/candidate-testimonials', icon: 'MdFormatQuote' },
       { label: 'Cms Pages', path: '/cms-pages', icon: 'MdWeb' },
       { label: 'Job Types', path: '/job-types', icon: 'MdWorkOutline' },
-      
+
       // { label: 'Departments', path: '/departments', icon: 'MdApartment' },
       // { label: 'Job Categories', path: '/job-categories', icon: 'MdWorkOutline' },
       // { label: 'Job Sub Categories', path: '/job-subcategories', icon: 'MdCategory' },
-      
+
       { label: 'Industries', path: '/industries', icon: 'MdBusiness' },
       { label: 'Sub Industries', path: '/subindustries', icon: 'MdSubdirectoryArrowRight' },
       { label: 'Function Role Categories', path: '/function-role-categories', icon: 'MdAssignment' },
@@ -259,7 +259,7 @@ export const menuItems = [
       // { label: 'Experience Levels', path: '/experience-levels', icon: 'MdTimeline' },
       // { label: 'Workplace Types', path: '/workplace-type', icon: 'MdBusinessCenter' },
       // { label: 'Application Statuses', path: '/application-status', icon: 'MdCheckCircle' },
-      { label: 'Subscription Feature Categories', path: '/subscription-feature-categories', icon: 'MdCategory' }, 
+      { label: 'Subscription Feature Categories', path: '/subscription-feature-categories', icon: 'MdCategory' },
       { label: 'Subscription Features', path: '/subscription-features', icon: 'MdExtension' },
       { label: 'Skills', path: '/skills', icon: 'MdApartment' },
       { label: 'Experience Levels', path: '/experience-levels', icon: 'MdTimeline' },
@@ -267,10 +267,10 @@ export const menuItems = [
       { label: 'Application Statuses', path: '/application-statuses', icon: 'MdCheckCircle' },
       { label: 'Roles', path: '/roles', icon: 'MdSecurity' },
       {
-  label: "Salary Options",
-  path: "/salary",
-  icon: 'MdAttachMoney', 
-}
+        label: "Salary Options",
+        path: "/salary",
+        icon: 'MdAttachMoney',
+      }
     ],
   },
   {
@@ -284,5 +284,6 @@ export const menuItems = [
       { label: 'Settings', path: '/settings', icon: 'MdSettings' },
     ],
   },
+  { label: "Search Candidates", path: "/search-candidates", icon: 'MdPeople' },
 
 ];
