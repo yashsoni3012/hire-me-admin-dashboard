@@ -234,7 +234,6 @@ export const menuItems = [
       { label: 'Cities', path: '/cities', icon: 'MdLocationCity' },
       { label: 'Languages', path: '/languages', icon: 'MdLanguage' },
       { label: 'Currencies', path: '/currencies', icon: 'MdAttachMoney' },
-      // { label: 'Departments', path: '/departments', icon: 'MdApartment' },
       { label: 'Billing Rates', path: '/billing-rates', icon: 'MdReceipt' },
       { label: 'Notice Period', path: '/notice-periods', icon: 'MdSettings' },
       { label: 'Banner', path: '/banners', icon: 'MdAdUnits' },
@@ -247,9 +246,11 @@ export const menuItems = [
       { label: 'Candidate Testimonials', path: '/candidate-testimonials', icon: 'MdFormatQuote' },
       { label: 'Cms Pages', path: '/cms-pages', icon: 'MdWeb' },
       { label: 'Job Types', path: '/job-types', icon: 'MdWorkOutline' },
-
+      
+      // { label: 'Departments', path: '/departments', icon: 'MdApartment' },
       // { label: 'Job Categories', path: '/job-categories', icon: 'MdWorkOutline' },
       // { label: 'Job Sub Categories', path: '/job-subcategories', icon: 'MdCategory' },
+      
       { label: 'Industries', path: '/industries', icon: 'MdBusiness' },
       { label: 'Sub Industries', path: '/subindustries', icon: 'MdSubdirectoryArrowRight' },
       { label: 'Function Role Categories', path: '/function-role-categories', icon: 'MdAssignment' },
